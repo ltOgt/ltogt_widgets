@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ltogt_widgets/src/colors.dart';
+import 'package:ltogt_widgets/src/brick_colors.dart';
 
 class BrickButton extends StatefulWidget {
   const BrickButton({

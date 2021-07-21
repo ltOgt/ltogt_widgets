@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ltogt_widgets/src/brick_button.dart';
+import 'package:ltogt_widgets/ltogt_widgets.dart';
 
 void main() {
   runApp(

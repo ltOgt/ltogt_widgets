@@ -63,7 +63,7 @@ class _BrickButtonState extends State<BrickButton> {
   GlobalKey globalKey = GlobalKey();
 
   void onTap() {
-    widget.onPress?.call;
+    widget.onPress?.call();
     if (widget.buildMenu != null) {
       Rect buttonRect = RenderHelper.getRect(globalKey: globalKey)!;
       showDialog(

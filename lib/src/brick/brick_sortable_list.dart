@@ -147,6 +147,7 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
                       list: __sortedChildren,
                       builder: (ChildData data, int i) => data.build(context),
                     ),
+                    SIZED_BOX_5,
                   ],
                 ),
               ),
@@ -218,6 +219,7 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
               sortOption: __sortOption,
               sortOptions: widget.sortingOptions,
               onChangeOrder: changeOrder,
+              onToggleDirection: () => changeOrder(__sortOption),
               trailing: widget.trailing,
               trailingClose: widget.trailingClose,
             ),
@@ -232,6 +234,7 @@ class _OrderBar<T> extends StatelessWidget {
   const _OrderBar({
     Key? key,
     required this.onChangeOrder,
+    required this.onToggleDirection,
     required this.sortOption,
     required this.sortOptions,
     required this.isOrderDesc,
@@ -240,6 +243,7 @@ class _OrderBar<T> extends StatelessWidget {
   }) : super(key: key);
 
   final void Function(SortingOption<T> sortKey) onChangeOrder;
+  final void Function() onToggleDirection;
   final SortingOption<T> sortOption;
   final List<SortingOption<T>> sortOptions;
   final bool isOrderDesc;
@@ -266,27 +270,24 @@ class _OrderBar<T> extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
+          BrickIconButton(
+            size: 30,
+            onPressed: (_) => onToggleDirection(),
+            icon: isOrderDesc ? const Icon(Icons.arrow_downward) : const Icon(Icons.arrow_upward),
+          ),
           ...ListGenerator.seperated(
-            seperator: SIZED_BOX_5,
+            seperator: SIZED_BOX_10,
+            leadingSeperator: true,
             list: sortOptions,
             builder: (SortingOption<T> option, int i) {
-              return ClipRRect(
-                borderRadius: BORDER_RADIUS_ALL_10,
-                child: BrickInkWell(
-                  color: BrickColors.GREY_4,
-                  hoverColor: Colors.white24,
-                  onTap: (_) => onChangeOrder(option),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                    child: Row(
-                      children: [
-                        if (sortOption == option)
-                          isOrderDesc ? const Icon(Icons.expand_more) : const Icon(Icons.expand_less),
-                        Text(option.name),
-                      ],
-                    ),
-                  ),
+              return BrickButton(
+                mode: (sortOption == option) ? BendMode.CONCAVE : BendMode.CONVEX,
+                bgColor: (sortOption == option) ? BrickColors.buttonActive : BrickColors.buttonIdle,
+                onPress: () => onChangeOrder(
+                  option,
                 ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                child: Text(option.name),
               );
             },
           ),

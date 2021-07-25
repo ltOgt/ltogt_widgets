@@ -1,33 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:ltogt_utils_flutter/ltogt_utils_flutter.dart';
 import 'package:ltogt_widgets/ltogt_widgets.dart';
+import 'package:ltogt_widgets/src/inner_shadow/bend_mode.dart';
 
-class BrickButton extends StatefulWidget {
-  const BrickButton({
+class BrickButton extends StatelessWidget {
+  BrickButton({
     Key? key,
-    required this.text,
-    required this.onPress,
+    this.text,
+    this.child,
+    this.onPress,
+    this.onPressWithRect,
     this.buildMenu,
-    this.bgColor = BrickColors.BLACK,
-    this.fgColor = BrickColors.WHITE,
-    this.bgColorSelected = BrickColors.GREY_4,
-    this.fgColorSelected = BrickColors.WHITE,
-    this.bgColorDisabled = BrickColors.GREY_2,
-    this.fgColorDisabled = BrickColors.WHITE,
+    this.mode = BendMode.CONVEX,
+    this.isElevated = false,
+    this.shadowColor = BrickColors.shadow,
+    this.bgColor = BrickColors.buttonIdle,
+    this.fgColor = BrickColors.buttonTextIdle,
+    this.bgColorSelected = BrickColors.buttonHover,
+    this.fgColorSelected = BrickColors.buttonTextHover,
+    this.bgColorDisabled = BrickColors.buttonDisabled,
+    this.fgColorDisabled = BrickColors.buttonTextDisabled,
+    this.borderColor = BrickColors.borderDark,
     this.fontSize = 20,
     this.borderRadius = const BorderRadius.all(Radius.circular(8)),
     this.padding = const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-  }) : super(key: key);
+  })  : assert(
+          child != null || text != null,
+          "Must pass either child or text",
+        ),
+        assert(
+          child == null || text == null,
+          "Must pass either child or text",
+        ),
+        super(key: key);
 
-  final String text;
+  final String? text;
+  final Widget? child;
   final Function()? onPress;
+  final Function(Rect r)? onPressWithRect;
 
+  final BendMode mode;
+  bool get isConcave => mode == BendMode.CONCAVE;
+
+  final bool isElevated;
+
+  final Color shadowColor;
   final Color bgColor;
   final Color fgColor;
   final Color bgColorSelected;
+  @Deprecated("Does not do anything")
   final Color fgColorSelected;
   final Color bgColorDisabled;
   final Color fgColorDisabled;
+  final Color borderColor;
   final double fontSize;
   final BorderRadius borderRadius;
   final EdgeInsets padding;
@@ -37,70 +62,75 @@ class BrickButton extends StatefulWidget {
   /// This rect can be used to position the menu relative to the button.
   final Positioned Function(BuildContext context, Rect globalButtonRect)? buildMenu;
 
-  @override
-  State<BrickButton> createState() => _BrickButtonState();
-}
+  final GlobalKey globalKey = GlobalKey();
 
-class _BrickButtonState extends State<BrickButton> {
-  @override
-  void initState() {
-    super.initState();
+  void onTap(BuildContext context) {
+    onPress?.call();
 
-    bgColor = widget.bgColor;
-    fgColor = widget.fgColor;
-  }
-
-  late Color bgColor;
-  late Color fgColor;
-
-  void setColorOnChangeHover(bool isHovering) {
-    setState(() {
-      bgColor = isHovering ? widget.bgColorSelected : widget.bgColor;
-      fgColor = isHovering ? widget.fgColorSelected : widget.fgColor;
-    });
-  }
-
-  GlobalKey globalKey = GlobalKey();
-
-  void onTap() {
-    widget.onPress?.call();
-    if (widget.buildMenu != null) {
+    if (onPressWithRect != null || buildMenu != null) {
       Rect buttonRect = RenderHelper.getRect(globalKey: globalKey)!;
-      showDialog(
-        context: context,
-        builder: (context) => Stack(
-          children: [
-            GestureDetector(
-              onTap: () => Navigator.of(context).pop(),
-              child: Container(
-                color: const Color(0x22000000),
+
+      onPressWithRect?.call(buttonRect);
+
+      if (buildMenu != null) {
+        showDialog(
+          context: context,
+          builder: (context) => Stack(
+            children: [
+              GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Container(
+                  color: const Color(0x22000000),
+                ),
               ),
-            ),
-            widget.buildMenu!.call(context, buttonRect),
-          ],
-        ),
-      );
+              buildMenu!.call(context, buttonRect),
+            ],
+          ),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      key: globalKey,
-      borderRadius: widget.borderRadius,
-      child: Material(
-        color: widget.onPress == null ? widget.bgColorDisabled : bgColor,
-        child: InkWell(
-          onHover: setColorOnChangeHover,
-          onTap: widget.onPress == null ? null : onTap,
-          child: Padding(
-            padding: widget.padding,
-            child: Text(
-              widget.text,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: widget.onPress == null ? widget.fgColorDisabled : fgColor,
-                fontSize: widget.fontSize,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: borderRadius,
+        border: Border.all(color: borderColor),
+        boxShadow: false == isElevated
+            ? null
+            : [
+                BoxShadow(
+                  color: shadowColor,
+                  blurRadius: 5,
+                  offset: const Offset(1, 1),
+                ),
+              ],
+      ),
+      child: ClipRRect(
+        key: globalKey,
+        borderRadius: borderRadius,
+        child: Material(
+          color: onPress == null ? bgColorDisabled : bgColor,
+          child: InkWell(
+            hoverColor: bgColorSelected,
+            onTap: (onPress == null && onPressWithRect == null) //
+                ? null
+                : () => onTap(context),
+            child: BendContainer(
+              borderRadius: borderRadius,
+              mode: mode,
+              child: Padding(
+                padding: padding,
+                child: child ??
+                    Text(
+                      text!,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: onPress == null ? fgColorDisabled : fgColor,
+                        fontSize: fontSize,
+                      ),
+                    ),
               ),
             ),
           ),

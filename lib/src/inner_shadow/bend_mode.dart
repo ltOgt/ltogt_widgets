@@ -1,0 +1,4 @@
+enum BendMode {
+  CONCAVE,
+  CONVEX,
+}

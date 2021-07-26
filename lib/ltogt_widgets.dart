@@ -6,6 +6,7 @@ export 'src/brick/brick_text_field.dart';
 export 'src/brick/brick_ink_well.dart';
 export 'src/brick/brick_icon_button.dart';
 export 'src/brick/brick_sortable_list.dart';
+export 'src/brick/brick_file_tree_browser.dart';
 
 export 'src/const/brick_colors.dart';
 

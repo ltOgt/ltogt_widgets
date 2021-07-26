@@ -1,12 +1,13 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+/// Mainly a bad workaround for SingleChildScrollView not beeing able to scroll horizontally with mousewheel + dragging not working on web
 class SingleChildScroller extends StatefulWidget {
   const SingleChildScroller({
     Key? key,
     required this.child,
-    required this.scrollDirection,
-    required this.reverse,
+    this.scrollDirection = Axis.vertical,
+    this.reverse = false,
     this.scrollToEnd = false,
   }) : super(key: key);
 
@@ -57,7 +58,44 @@ class _SingleChildScrollerState extends State<SingleChildScroller> {
   }
 
   void _addDelta(double delta) {
-    _controller.jumpTo(_controller.offset + _sign * delta);
+    double minExtend = _controller.position.minScrollExtent;
+    double maxExtend = _controller.position.maxScrollExtent;
+
+    double newPos = _controller.offset + _sign * delta;
+
+    print("New 0: $newPos");
+    print("Min  : $minExtend");
+    print("Max  : $maxExtend");
+
+    // dont overscroll
+    if (newPos < minExtend) {
+      newPos = minExtend;
+    } else if (newPos > maxExtend) {
+      newPos = maxExtend;
+    }
+    _controller.jumpTo(newPos);
+
+    print("New 1: $newPos");
+    print("-----------");
+  }
+
+  void _updateScroll(PointerSignalEvent e) {
+    if (e is PointerScrollEvent) {
+      double deltaUsed;
+      double deltaX = e.scrollDelta.dx;
+      double deltaY = e.scrollDelta.dy;
+
+      if (e.kind == PointerDeviceKind.mouse) {
+        // Mouse-Wheel can only be scrolled on Y-Axis, regardless of scroll axis
+        deltaUsed = deltaY;
+        // for some reason, trackpad is also mouse instead of touch
+      } else {
+        deltaUsed = isVertical ? deltaY : deltaX;
+      }
+
+      // eye-balled 1/3 of mouse scroll
+      _addDelta(deltaUsed / 3);
+    }
   }
 
   void _updateDrag(DragUpdateDetails d) {
@@ -76,8 +114,7 @@ class _SingleChildScrollerState extends State<SingleChildScroller> {
     return Listener(
       onPointerSignal: (s) {
         if (s is PointerScrollEvent) {
-          // eye-balled 1/3 of mouse scroll
-          _addDelta(s.scrollDelta.dy / 3);
+          GestureBinding.instance!.pointerSignalResolver.register(s, _updateScroll);
         }
       },
       child: GestureDetector(

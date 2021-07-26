@@ -5,6 +5,7 @@ import 'package:ltogt_widgets/src/inner_shadow/bend_mode.dart';
 
 class BrickButton extends StatelessWidget {
   static const BorderRadius defaultBorderRadius = const BorderRadius.all(Radius.circular(8));
+  static const EdgeInsets defaultPadding = const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0);
 
   BrickButton({
     Key? key,
@@ -25,7 +26,8 @@ class BrickButton extends StatelessWidget {
     this.borderColor = BrickColors.borderDark,
     this.fontSize = 20,
     this.borderRadius = defaultBorderRadius,
-    this.padding = const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+    this.padding = defaultPadding,
+    this.renderFlat = false,
   })  : assert(
           child != null || text != null,
           "Must pass either child or text",
@@ -58,6 +60,9 @@ class BrickButton extends StatelessWidget {
   final double? fontSize;
   final BorderRadius borderRadius;
   final EdgeInsets padding;
+
+  /// Whether to render the button flat instead of bend.
+  final bool renderFlat;
 
   /// Whether to build a floating menu on button click.
   /// The builder is passed the global rect of this button (size and offset on screen).
@@ -119,9 +124,13 @@ class BrickButton extends StatelessWidget {
             onTap: (onPress == null && onPressWithRect == null) //
                 ? null
                 : () => onTap(context),
-            child: BendContainer(
-              borderRadius: borderRadius,
-              mode: mode,
+            child: ConditionalParentWidget(
+              condition: false == renderFlat,
+              parentBuilder: (child) => BendContainer(
+                borderRadius: borderRadius,
+                mode: mode,
+                child: child,
+              ),
               child: Padding(
                 padding: padding,
                 child: child ??

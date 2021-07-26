@@ -313,6 +313,7 @@ class _OrderBar<T> extends StatelessWidget {
         ],
       ),
       padding: PADDING_ALL_10,
+      // TODO-? add SingleChildScroller
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [

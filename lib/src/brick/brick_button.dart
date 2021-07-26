@@ -4,6 +4,8 @@ import 'package:ltogt_widgets/ltogt_widgets.dart';
 import 'package:ltogt_widgets/src/inner_shadow/bend_mode.dart';
 
 class BrickButton extends StatelessWidget {
+  static const BorderRadius defaultBorderRadius = const BorderRadius.all(Radius.circular(8));
+
   BrickButton({
     Key? key,
     this.text,
@@ -22,7 +24,7 @@ class BrickButton extends StatelessWidget {
     this.fgColorDisabled = BrickColors.buttonTextDisabled,
     this.borderColor = BrickColors.borderDark,
     this.fontSize = 20,
-    this.borderRadius = const BorderRadius.all(Radius.circular(8)),
+    this.borderRadius = defaultBorderRadius,
     this.padding = const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
   })  : assert(
           child != null || text != null,
@@ -53,7 +55,7 @@ class BrickButton extends StatelessWidget {
   final Color bgColorDisabled;
   final Color fgColorDisabled;
   final Color borderColor;
-  final double fontSize;
+  final double? fontSize;
   final BorderRadius borderRadius;
   final EdgeInsets padding;
 

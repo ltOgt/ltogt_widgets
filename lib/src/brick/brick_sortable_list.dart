@@ -41,13 +41,32 @@ class BrickSortableList<T> extends StatefulWidget {
     this.boxConstraints = defaultBoxConstraints,
     this.trailing = const [],
     this.trailingClose = const [],
+    this.barOnTop = true,
+    this.contentPadding = EdgeInsets.zero,
   }) : super(key: key);
 
+  /// Items to be build and sorted
   final List<ChildData<T>> childData;
+
+  /// Sorting Options to sort [childData] by
   final List<SortingOption<T>> sortingOptions;
+
+  /// Contstraints for the whole widget
   final BoxConstraints boxConstraints;
+
+  /// Widgets to add to the bar at the end
   final List<Widget> trailing;
+
+  /// Widgets to add to the bar, right after [sortingOptions]
   final List<Widget> trailingClose;
+
+  /// If true, the bar is rendered at the start of the list.
+  /// Otherwise it is rendered at the bottom
+  final bool barOnTop;
+
+  /// Additional content padding.
+  /// Useful e.g. if you want to overlay additional widgets and push the items accordingly
+  final EdgeInsets contentPadding;
 
   @override
   State<BrickSortableList> createState() => _BrickSortableListState();
@@ -129,10 +148,11 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
           children: [
             Padding(
               padding: EdgeInsets.only(
-                top: (barPadding ?? 60.0) + 1,
+                top: widget.barOnTop ? (barPadding ?? 60.0) + 1 : 0,
                 right: 10,
                 left: 10,
-              ),
+                bottom: widget.barOnTop ? 0 : (barPadding ?? 60.0) + 1,
+              ).add(widget.contentPadding),
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -155,6 +175,25 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
 
             /// Shadow
             ...[
+              Positioned(
+                top: 0,
+                right: 0,
+                left: 0,
+                child: Container(
+                  height: 0,
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    boxShadow: [
+                      BoxShadow(
+                        spreadRadius: 2,
+                        blurRadius: 4,
+                        offset: Offset(0, -2),
+                        color: Colors.black,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               Positioned(
                 bottom: 0,
                 right: 0,
@@ -213,15 +252,22 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
                 ),
               ),
             ],
-            _OrderBar<T>(
-              key: barKey,
-              isOrderDesc: isOrderDesc,
-              sortOption: __sortOption,
-              sortOptions: widget.sortingOptions,
-              onChangeOrder: changeOrder,
-              onToggleDirection: () => changeOrder(__sortOption),
-              trailing: widget.trailing,
-              trailingClose: widget.trailingClose,
+            // Bar
+            Positioned(
+              top: widget.barOnTop ? 0 : null,
+              bottom: widget.barOnTop ? null : 0,
+              left: 0,
+              right: 0,
+              child: _OrderBar<T>(
+                key: barKey,
+                isOrderDesc: isOrderDesc,
+                sortOption: __sortOption,
+                sortOptions: widget.sortingOptions,
+                onChangeOrder: changeOrder,
+                onToggleDirection: () => changeOrder(__sortOption),
+                trailing: widget.trailing,
+                trailingClose: widget.trailingClose,
+              ),
             ),
           ],
         ),

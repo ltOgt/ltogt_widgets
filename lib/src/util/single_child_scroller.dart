@@ -63,10 +63,6 @@ class _SingleChildScrollerState extends State<SingleChildScroller> {
 
     double newPos = _controller.offset + _sign * delta;
 
-    print("New 0: $newPos");
-    print("Min  : $minExtend");
-    print("Max  : $maxExtend");
-
     // dont overscroll
     if (newPos < minExtend) {
       newPos = minExtend;
@@ -74,9 +70,6 @@ class _SingleChildScrollerState extends State<SingleChildScroller> {
       newPos = maxExtend;
     }
     _controller.jumpTo(newPos);
-
-    print("New 1: $newPos");
-    print("-----------");
   }
 
   void _updateScroll(PointerSignalEvent e) {

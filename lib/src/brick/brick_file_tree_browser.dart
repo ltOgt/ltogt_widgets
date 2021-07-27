@@ -88,16 +88,7 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
               height: widget.filePathBarHeight - 2 * BrickFileTreeBrowser._borderWidth,
               decoration: BoxDecoration(
                 borderRadius: BORDER_RADIUS_ALL_10,
-                border: Border.all(color: BrickColors.borderDark),
                 color: BrickColors.GREY_2,
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black,
-                    blurRadius: 2,
-                    spreadRadius: -2,
-                    offset: Offset(0, -2),
-                  ),
-                ],
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -134,7 +125,7 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
                                 scrollDirection: Axis.horizontal,
                                 child: SizedBox(
                                   height: widget.filePathBarHeight -
-                                      4 * BrickFileTreeBrowser._borderWidth -
+                                      2 * BrickFileTreeBrowser._borderWidth -
                                       2 * _FilePathGuardRail.totalWidth,
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,

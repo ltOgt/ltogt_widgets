@@ -52,7 +52,7 @@ class _TodoWidgetState extends State<TodoWidget> {
         SortingOption<TodoObject>(name: "CHANGE", compare: TodoObject.compareChange),
         SortingOption<TodoObject>(name: "DONE", compare: TodoObject.compareDone),
       ],
-      trailing: [
+      sortBarTrailing: [
         const BrickIconButton(
           icon: Icon(Icons.refresh),
         ),

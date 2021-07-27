@@ -26,6 +26,7 @@ class BrickButton extends StatelessWidget {
     this.borderColor = BrickColors.borderDark,
     this.fontSize = 20,
     this.borderRadius = defaultBorderRadius,
+    this.border,
     this.padding = defaultPadding,
     this.renderFlat = false,
   })  : assert(
@@ -35,6 +36,10 @@ class BrickButton extends StatelessWidget {
         assert(
           child == null || text == null,
           "Must pass either child or text",
+        ),
+        assert(
+          border == null || border.isUniform || borderRadius == null,
+          "Can only supply borderRadius for uniform border",
         ),
         super(key: key);
 
@@ -58,7 +63,18 @@ class BrickButton extends StatelessWidget {
   final Color fgColorDisabled;
   final Color borderColor;
   final double? fontSize;
-  final BorderRadius borderRadius;
+
+  /// Radius to apply to uniform [border].
+  /// If [border] is not uniform, this must be null.
+  /// Defaults to [defaultBorderRadius].
+  final BorderRadius? borderRadius;
+
+  /// If this is null, [borderColor] is applied to a default border with width 1.
+  /// Otherwise [borderColor] has no effect and this [border] is applied directly.
+  final Border? border;
+
+  /// Padding that is applied to the content inside the bounds of the button.
+  /// Defaults to [defaultPadding]
   final EdgeInsets padding;
 
   /// Whether to render the button flat instead of bend.
@@ -103,7 +119,7 @@ class BrickButton extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: borderRadius,
-        border: Border.all(color: borderColor),
+        border: border ?? Border.all(color: borderColor),
         boxShadow: false == isElevated
             ? null
             : [
@@ -114,10 +130,15 @@ class BrickButton extends StatelessWidget {
                 ),
               ],
       ),
-      child: ClipRRect(
-        key: globalKey,
-        borderRadius: borderRadius,
+      child: ConditionalParentWidget(
+        condition: borderRadius != null,
+        // Can only include clipper for non null border radius
+        parentBuilder: (child) => ClipRRect(
+          child: child,
+          borderRadius: borderRadius!,
+        ),
         child: Material(
+          key: globalKey,
           color: onPress == null ? bgColorDisabled : bgColor,
           child: InkWell(
             hoverColor: bgColorSelected,
@@ -127,7 +148,10 @@ class BrickButton extends StatelessWidget {
             child: ConditionalParentWidget(
               condition: false == renderFlat,
               parentBuilder: (child) => BendContainer(
-                borderRadius: borderRadius,
+                // THIS widget need borderRadius to be nullable in case of non uniform border
+                // But BendContainer will fallback to default on null borderRadius.
+                // Instead use BorderRadius.zero to indicate that no border radius is desired
+                borderRadius: borderRadius ?? BorderRadius.zero,
                 mode: mode,
                 child: child,
               ),

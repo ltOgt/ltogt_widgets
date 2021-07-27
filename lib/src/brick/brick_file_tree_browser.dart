@@ -4,8 +4,8 @@ import 'package:ltogt_utils_flutter/ltogt_utils_flutter.dart';
 import 'package:ltogt_widgets/ltogt_widgets.dart';
 import 'package:ltogt_widgets/src/util/single_child_scroller.dart';
 
-class BrickFileTreeBrowser extends StatelessWidget {
-  static const iconButtonPadding = EdgeInsets.symmetric(horizontal: 4);
+class BrickFileTreeBrowser extends StatefulWidget {
+  static const iconButtonPadding = EdgeInsets.symmetric(horizontal: 4, vertical: 0);
   static const _borderWidth = 1.0;
   static const _guardRailWidth = 1.0;
 
@@ -29,6 +29,16 @@ class BrickFileTreeBrowser extends StatelessWidget {
       (f1.lastChange == null) ? -1 : (f2.lastChange == null ? 1 : f1.lastChange!.compareTo(f2.lastChange!));
 
   @override
+  State<BrickFileTreeBrowser> createState() => _BrickFileTreeBrowserState();
+}
+
+class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
+  bool showSearch = false;
+  void toggleSearch() => setState(() {
+        showSearch = !showSearch;
+      });
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: PADDING_HORIZONTAL_40,
@@ -36,8 +46,21 @@ class BrickFileTreeBrowser extends StatelessWidget {
         children: [
           /// File List -----------------------------------
           BrickSortableList(
+            sortBarTrailing: [
+              BrickIconButton(
+                onPressed: (_) => toggleSearch(),
+                icon: Icon(Icons.search),
+                size: 30,
+              ),
+            ],
+            sortBarChildBelow: (false == showSearch)
+                ? null
+                : Container(
+                    height: 30,
+                    color: Colors.black,
+                  ),
             barOnTop: true,
-            childData: rootDir.entities
+            childData: widget.rootDir.entities
                 .map((fileUnderRoot) => ChildData(
                       data: fileUnderRoot,
                       build: (c) => FileTreeNodeWidget(
@@ -46,10 +69,10 @@ class BrickFileTreeBrowser extends StatelessWidget {
                     ))
                 .toList(),
             sortingOptions: const [
-              SortingOption(name: "Name", compare: compareName),
-              SortingOption(name: "Change", compare: compareChange),
+              SortingOption(name: "Name", compare: BrickFileTreeBrowser.compareName),
+              SortingOption(name: "Change", compare: BrickFileTreeBrowser.compareChange),
             ],
-            contentPadding: EdgeInsets.only(bottom: filePathBarHeight),
+            contentPadding: EdgeInsets.only(bottom: widget.filePathBarHeight - 2),
           ),
 
           /// Sub-Path Info -------------------------------
@@ -59,14 +82,22 @@ class BrickFileTreeBrowser extends StatelessWidget {
             right: 0,
             child: Container(
               constraints: BrickSortableList.defaultBoxConstraints.copyWith(
-                minHeight: filePathBarHeight - 2 * _borderWidth,
-                maxHeight: filePathBarHeight - 2 * _borderWidth,
+                minHeight: widget.filePathBarHeight - 2 * BrickFileTreeBrowser._borderWidth,
+                maxHeight: widget.filePathBarHeight - 2 * BrickFileTreeBrowser._borderWidth,
               ),
-              height: filePathBarHeight - 2 * _borderWidth,
+              height: widget.filePathBarHeight - 2 * BrickFileTreeBrowser._borderWidth,
               decoration: BoxDecoration(
                 borderRadius: BORDER_RADIUS_ALL_10,
                 border: Border.all(color: BrickColors.borderDark),
-                color: BrickColors.GLASS_BLACK,
+                color: BrickColors.GREY_2,
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black,
+                    blurRadius: 2,
+                    spreadRadius: -2,
+                    offset: Offset(0, -2),
+                  ),
+                ],
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -77,7 +108,7 @@ class BrickFileTreeBrowser extends StatelessWidget {
                       bottomRight: Radius.circular(0),
                     ),
                     onPress: () {},
-                    padding: iconButtonPadding,
+                    padding: BrickFileTreeBrowser.iconButtonPadding,
                     child: FittedBox(
                       fit: BoxFit.contain,
                       child: Icon(
@@ -89,10 +120,7 @@ class BrickFileTreeBrowser extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Container(
-                          height: _guardRailWidth,
-                          color: BrickColors.buttonIdle,
-                        ),
+                        const _FilePathGuardRail(),
                         Stack(
                           children: [
                             SizedBox(
@@ -102,23 +130,29 @@ class BrickFileTreeBrowser extends StatelessWidget {
                                 scrollToEnd: true,
                                 scrollDirection: Axis.horizontal,
                                 child: SizedBox(
-                                  height: filePathBarHeight - 4 * _borderWidth - 2 * _guardRailWidth,
+                                  height: widget.filePathBarHeight -
+                                      8 * BrickFileTreeBrowser._borderWidth -
+                                      2 * BrickFileTreeBrowser._guardRailWidth,
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     crossAxisAlignment: CrossAxisAlignment.stretch,
                                     children: ListGenerator.forEach(
-                                      list: path.path,
+                                      list: widget.path.path,
                                       builder: (String segment, int i) => BrickButton(
-                                        child: FittedBox(
-                                          fit: BoxFit.contain,
-                                          child: Text(segment),
+                                        // Add border only to right, otherwise always 2 pixel border (1 of each neighbour)
+                                        // Also enables to have single pixel border along whole guardRail
+                                        border: const Border(
+                                          right: BorderSide(color: BrickColors.borderDark, width: 1),
                                         ),
-                                        borderRadius: BorderRadius.zero,
+                                        borderRadius: null,
+                                        child: Text(segment),
+
                                         padding: PADDING_HORIZONTAL_5,
                                         onPress: () {},
-                                        mode: (i == pathIndex) ? BendMode.CONCAVE : BendMode.CONVEX,
-                                        bgColor: (i == pathIndex) ? BrickColors.buttonActive : BrickColors.buttonIdle,
+                                        mode: (i == widget.pathIndex) ? BendMode.CONCAVE : BendMode.CONVEX,
+                                        bgColor:
+                                            (i == widget.pathIndex) ? BrickColors.buttonActive : BrickColors.buttonIdle,
                                       ),
                                     ),
                                   ),
@@ -128,7 +162,7 @@ class BrickFileTreeBrowser extends StatelessWidget {
                             Positioned(
                               left: 0,
                               child: Container(
-                                height: filePathBarHeight,
+                                height: widget.filePathBarHeight,
                                 width: 0,
                                 decoration: BoxDecoration(
                                   color: Colors.black,
@@ -146,7 +180,7 @@ class BrickFileTreeBrowser extends StatelessWidget {
                             Positioned(
                               right: 0,
                               child: Container(
-                                height: filePathBarHeight,
+                                height: widget.filePathBarHeight,
                                 width: 0,
                                 decoration: BoxDecoration(
                                   color: Colors.black,
@@ -163,10 +197,7 @@ class BrickFileTreeBrowser extends StatelessWidget {
                             ),
                           ],
                         ),
-                        Container(
-                          height: _guardRailWidth,
-                          color: BrickColors.buttonIdle,
-                        ),
+                        const _FilePathGuardRail(),
                       ],
                     ),
                   ),
@@ -176,7 +207,7 @@ class BrickFileTreeBrowser extends StatelessWidget {
                       bottomLeft: Radius.circular(0),
                     ),
                     onPress: () {},
-                    padding: iconButtonPadding,
+                    padding: BrickFileTreeBrowser.iconButtonPadding,
                     child: FittedBox(
                       fit: BoxFit.contain,
                       child: Icon(
@@ -189,6 +220,26 @@ class BrickFileTreeBrowser extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _FilePathGuardRail extends StatelessWidget {
+  const _FilePathGuardRail({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: BrickFileTreeBrowser._guardRailWidth + 2 * BrickFileTreeBrowser._borderWidth,
+      decoration: BoxDecoration(
+        color: BrickColors.buttonIdle,
+        border: const Border(
+          bottom: BorderSide(color: BrickColors.borderDark, width: BrickFileTreeBrowser._borderWidth),
+          top: BorderSide(color: BrickColors.borderDark, width: BrickFileTreeBrowser._borderWidth),
+        ),
       ),
     );
   }

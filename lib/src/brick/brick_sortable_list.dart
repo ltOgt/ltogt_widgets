@@ -39,8 +39,9 @@ class BrickSortableList<T> extends StatefulWidget {
     required this.childData,
     required this.sortingOptions,
     this.boxConstraints = defaultBoxConstraints,
-    this.trailing = const [],
-    this.trailingClose = const [],
+    this.sortBarTrailing = const [],
+    this.sortBarTrailingClose = const [],
+    this.sortBarChildBelow,
     this.barOnTop = true,
     this.contentPadding = EdgeInsets.zero,
   }) : super(key: key);
@@ -55,10 +56,13 @@ class BrickSortableList<T> extends StatefulWidget {
   final BoxConstraints boxConstraints;
 
   /// Widgets to add to the bar at the end
-  final List<Widget> trailing;
+  final List<Widget> sortBarTrailing;
 
   /// Widgets to add to the bar, right after [sortingOptions]
-  final List<Widget> trailingClose;
+  final List<Widget> sortBarTrailingClose;
+
+  /// Widget to add directly below sortBar
+  final Widget? sortBarChildBelow;
 
   /// If true, the bar is rendered at the start of the list.
   /// Otherwise it is rendered at the bottom
@@ -98,6 +102,9 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
       __sortedChildren = widget.childData;
       _order(__sortOption);
     }
+    if (oldWidget.sortBarChildBelow != widget.sortBarChildBelow) {
+      calculateBarPaddingInNextFrame();
+    }
   }
 
   void _order(SortingOption<T> sortOption) {
@@ -125,15 +132,19 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
   final GlobalKey barKey = GlobalKey();
 
   double? barPadding;
+  // Need to wait one frame for the bar to be sized
+  void calculateBarPaddingInNextFrame() {
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+      setState(() {
+        barPadding = RenderHelper.getSize(globalKey: barKey)?.height;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     if (barPadding == null) {
-      WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
-        setState(() {
-          barPadding = RenderHelper.getSize(globalKey: barKey)?.height;
-        });
-      });
+      calculateBarPaddingInNextFrame();
     }
 
     return ClipRRect(
@@ -265,8 +276,9 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
                 sortOptions: widget.sortingOptions,
                 onChangeOrder: changeOrder,
                 onToggleDirection: () => changeOrder(__sortOption),
-                trailing: widget.trailing,
-                trailingClose: widget.trailingClose,
+                trailing: widget.sortBarTrailing,
+                trailingClose: widget.sortBarTrailingClose,
+                childBelow: widget.sortBarChildBelow,
               ),
             ),
           ],
@@ -286,6 +298,7 @@ class _OrderBar<T> extends StatelessWidget {
     required this.isOrderDesc,
     required this.trailing,
     required this.trailingClose,
+    this.childBelow,
   }) : super(key: key);
 
   final void Function(SortingOption<T> sortKey) onChangeOrder;
@@ -295,6 +308,7 @@ class _OrderBar<T> extends StatelessWidget {
   final bool isOrderDesc;
   final List<Widget> trailing;
   final List<Widget> trailingClose;
+  final Widget? childBelow;
 
   @override
   Widget build(BuildContext context) {
@@ -314,41 +328,54 @@ class _OrderBar<T> extends StatelessWidget {
       ),
       padding: PADDING_ALL_10,
       // TODO-? add SingleChildScroller
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          BrickIconButton(
-            size: 30,
-            onPressed: (_) => onToggleDirection(),
-            icon: isOrderDesc ? const Icon(Icons.arrow_downward) : const Icon(Icons.arrow_upward),
-          ),
-          ...ListGenerator.seperated(
-            seperator: SIZED_BOX_10,
-            leadingSeperator: true,
-            list: sortOptions,
-            builder: (SortingOption<T> option, int i) {
-              return BrickButton(
-                mode: (sortOption == option) ? BendMode.CONCAVE : BendMode.CONVEX,
-                bgColor: (sortOption == option) ? BrickColors.buttonActive : BrickColors.buttonIdle,
-                onPress: () => onChangeOrder(
-                  option,
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                child: Text(option.name),
-              );
-            },
-          ),
-          ...WidgetListGenerator.spaced(
-            uniform: 5,
-            beforeFirst: true,
-            widgets: trailingClose,
-          ),
-          const Expanded(child: SizedBox()),
-          ...WidgetListGenerator.spaced(
-            uniform: 5,
-            widgets: trailing,
-          ),
-        ],
+      child: ConditionalParentWidget(
+        condition: childBelow != null,
+        parentBuilder: (child) => Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            child,
+            SIZED_BOX_10,
+            childBelow!,
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            BrickIconButton(
+              size: 30,
+              onPressed: (_) => onToggleDirection(),
+              icon: isOrderDesc ? const Icon(Icons.arrow_downward) : const Icon(Icons.arrow_upward),
+            ),
+            ...ListGenerator.seperated(
+              seperator: SIZED_BOX_10,
+              leadingSeperator: true,
+              list: sortOptions,
+              builder: (SortingOption<T> option, int i) {
+                return BrickButton(
+                  mode: (sortOption == option) ? BendMode.CONCAVE : BendMode.CONVEX,
+                  bgColor: (sortOption == option) ? BrickColors.buttonActive : BrickColors.buttonIdle,
+                  onPress: () => onChangeOrder(
+                    option,
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  child: Text(option.name),
+                );
+              },
+            ),
+            ...WidgetListGenerator.spaced(
+              uniform: 5,
+              beforeFirst: true,
+              widgets: trailingClose,
+            ),
+            const Expanded(child: SizedBox()),
+            ...WidgetListGenerator.spaced(
+              uniform: 5,
+              widgets: trailing,
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -12,6 +12,7 @@ class BrickScrollStack extends StatelessWidget {
     this.mainAxisSize,
     this.crossAxisSize,
     required this.children,
+    this.childPadding = EdgeInsets.zero,
     this.leading,
     this.leadingShadow,
     this.trailing,
@@ -39,6 +40,9 @@ class BrickScrollStack extends StatelessWidget {
 
   /// The content that is to be scrolled in [scrollDirection].
   final List<Widget> children;
+
+  /// Additional padding to the scroll area around [children].
+  final EdgeInsetsGeometry childPadding;
 
   /// Optional Widget that leads [children].
   final Widget? leading;
@@ -133,16 +137,19 @@ class BrickScrollStack extends StatelessWidget {
                       AxisSizedBox(
                         mainAxis: scrollDirection,
                         mainAxisSize: double.infinity,
-                        child: SingleChildScroller(
-                          reverse: false, // TODO expose
-                          scrollToEnd: scrollToEnd,
-                          scrollDirection: scrollDirection,
-                          child: RowOrColumn(
-                            axis: scrollDirection,
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: children,
+                        child: Padding(
+                          padding: childPadding,
+                          child: SingleChildScroller(
+                            reverse: false, // TODO expose
+                            scrollToEnd: scrollToEnd,
+                            scrollDirection: scrollDirection,
+                            child: RowOrColumn(
+                              axis: scrollDirection,
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: children,
+                            ),
                           ),
                         ),
                       ),

@@ -59,6 +59,7 @@ class BrickIconButton extends StatelessWidget {
       ),
       child: ClipOval(
         child: Material(
+          color: color,
           child: BrickInkWell(
             color: isDisabled ? colorDisabled : color,
             hoverColor: hoverColor,

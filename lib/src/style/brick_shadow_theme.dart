@@ -17,6 +17,14 @@ class BrickShadowTheme {
   });
 
   static const BrickShadowTheme defaultTheme = _BrickShadowThemeDefaults();
+
+  BrickShadowTheme copyWith({
+    List<BoxShadow>? elevated,
+  }) {
+    return BrickShadowTheme(
+      elevated: elevated ?? this.elevated,
+    );
+  }
 }
 
 class _BrickShadowThemeDefaults implements BrickShadowTheme {
@@ -31,4 +39,13 @@ class _BrickShadowThemeDefaults implements BrickShadowTheme {
       blurRadius: 4,
     ),
   ];
+
+  @override
+  BrickShadowTheme copyWith({
+    List<BoxShadow>? elevated,
+  }) {
+    return BrickShadowTheme(
+      elevated: elevated ?? this.elevated,
+    );
+  }
 }

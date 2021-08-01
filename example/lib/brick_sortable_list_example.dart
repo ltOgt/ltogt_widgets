@@ -7,6 +7,7 @@ void main() {
       title: 'Brick Button Example',
       theme: ThemeData.dark(),
       home: Scaffold(
+        backgroundColor: const Color(0xFF232324), // TODO consider using this as default background1
         body: Center(
           child: Container(
             height: 500,
@@ -42,30 +43,39 @@ class _TodoWidgetState extends State<TodoWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return BrickSortableList(
-      childData: todos
-          .map((e) => ChildData<TodoObject>(
-                data: e,
-                build: (c) => e.build(c, update),
-              ))
-          .toList(),
-      sortingOptions: const [
-        SortingOption<TodoObject>(name: "TASK", compare: TodoObject.compareTask),
-        SortingOption<TodoObject>(name: "USER", compare: TodoObject.compareUser),
-        SortingOption<TodoObject>(name: "CREATE", compare: TodoObject.compareCreate),
-        SortingOption<TodoObject>(name: "CHANGE", compare: TodoObject.compareChange),
-        SortingOption<TodoObject>(name: "DONE", compare: TodoObject.compareDone),
-      ],
-      sortBarTrailing: [
-        const BrickIconButton(
-          icon: Icon(Icons.refresh),
-        ),
-        SIZED_BOX_5,
-        BrickIconButton(
-          onPressed: (_) {},
-          icon: const Icon(Icons.add),
-        ),
-      ],
+    return BrickThemeProvider.adjustLocal(
+      context: context,
+      changeExisting: (BrickTheme existing) => BrickTheme(
+        // TODO consider using this color as default background2. generally like idea of dark blues
+        color: existing.color.copyWith(background2: const Color(0xFF121214)),
+        shadow: existing.shadow,
+        radius: existing.radius,
+      ),
+      child: BrickSortableList(
+        childData: todos
+            .map((e) => ChildData<TodoObject>(
+                  data: e,
+                  build: (c) => e.build(c, update),
+                ))
+            .toList(),
+        sortingOptions: const [
+          SortingOption<TodoObject>(name: "TASK", compare: TodoObject.compareTask),
+          SortingOption<TodoObject>(name: "USER", compare: TodoObject.compareUser),
+          SortingOption<TodoObject>(name: "CREATE", compare: TodoObject.compareCreate),
+          SortingOption<TodoObject>(name: "CHANGE", compare: TodoObject.compareChange),
+          SortingOption<TodoObject>(name: "DONE", compare: TodoObject.compareDone),
+        ],
+        sortBarTrailing: [
+          const BrickIconButton(
+            icon: Icon(Icons.refresh),
+          ),
+          SIZED_BOX_5,
+          BrickIconButton(
+            onPressed: (_) {},
+            icon: const Icon(Icons.add),
+          ),
+        ],
+      ),
     );
   }
 }

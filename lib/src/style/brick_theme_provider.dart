@@ -10,6 +10,19 @@ class BrickThemeProvider extends InheritedWidget {
     required this.theme,
   }) : super(key: key, child: child);
 
+  static BrickThemeProvider adjustLocal({
+    required Widget child,
+    required BuildContext context,
+    required BrickTheme Function(BrickTheme theme) changeExisting,
+  }) {
+    final changedTheme = changeExisting(BrickThemeProvider.getTheme(context));
+
+    return BrickThemeProvider(
+      child: child,
+      theme: changedTheme,
+    );
+  }
+
   static BrickThemeProvider? of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<BrickThemeProvider>();
   }

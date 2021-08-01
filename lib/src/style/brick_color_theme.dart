@@ -98,6 +98,54 @@ class BrickColorTheme {
   });
 
   static const BrickColorTheme defaultTheme = _BrickColorThemeDefaults();
+
+  BrickColorTheme copyWith({
+    Color? text,
+    Color? icon,
+    Color? background,
+    Color? background2,
+    Color? background3,
+    Color? shadow,
+    Color? bendLight,
+    Color? bendDark,
+    Color? hover,
+    Color? warning,
+    Color? overlayBorderLayer,
+    Color? borderDark,
+    Color? borderLight,
+    Color? buttonIdle,
+    Color? buttonTextIdle,
+    Color? buttonDisabled,
+    Color? buttonTextDisabled,
+    Color? buttonHover,
+    Color? buttonTextHover,
+    Color? buttonActive,
+    Color? buttonTextActive,
+  }) {
+    return BrickColorTheme(
+      text: text ?? this.text,
+      icon: icon ?? this.icon,
+      background: background ?? this.background,
+      background2: background2 ?? this.background2,
+      background3: background3 ?? this.background3,
+      shadow: shadow ?? this.shadow,
+      bendLight: bendLight ?? this.bendLight,
+      bendDark: bendDark ?? this.bendDark,
+      hover: hover ?? this.hover,
+      warning: warning ?? this.warning,
+      overlayBorderLayer: overlayBorderLayer ?? this.overlayBorderLayer,
+      borderDark: borderDark ?? this.borderDark,
+      borderLight: borderLight ?? this.borderLight,
+      buttonIdle: buttonIdle ?? this.buttonIdle,
+      buttonTextIdle: buttonTextIdle ?? this.buttonTextIdle,
+      buttonDisabled: buttonDisabled ?? this.buttonDisabled,
+      buttonTextDisabled: buttonTextDisabled ?? this.buttonTextDisabled,
+      buttonHover: buttonHover ?? this.buttonHover,
+      buttonTextHover: buttonTextHover ?? this.buttonTextHover,
+      buttonActive: buttonActive ?? this.buttonActive,
+      buttonTextActive: buttonTextActive ?? this.buttonTextActive,
+    );
+  }
 }
 
 class _BrickColorThemeDefaults implements BrickColorTheme {
@@ -163,4 +211,53 @@ class _BrickColorThemeDefaults implements BrickColorTheme {
   final Color buttonActive = _mutedGreen;
   @override
   final Color buttonTextActive = _white;
+
+  @override
+  BrickColorTheme copyWith({
+    Color? text,
+    Color? icon,
+    Color? background,
+    Color? background2,
+    Color? background3,
+    Color? shadow,
+    Color? bendLight,
+    Color? bendDark,
+    Color? hover,
+    Color? warning,
+    Color? overlayBorderLayer,
+    Color? borderDark,
+    Color? borderLight,
+    Color? buttonIdle,
+    Color? buttonTextIdle,
+    Color? buttonDisabled,
+    Color? buttonTextDisabled,
+    Color? buttonHover,
+    Color? buttonTextHover,
+    Color? buttonActive,
+    Color? buttonTextActive,
+  }) {
+    return BrickColorTheme(
+      text: text ?? this.text,
+      icon: icon ?? this.icon,
+      background: background ?? this.background,
+      background2: background2 ?? this.background2,
+      background3: background3 ?? this.background3,
+      shadow: shadow ?? this.shadow,
+      bendLight: bendLight ?? this.bendLight,
+      bendDark: bendDark ?? this.bendDark,
+      hover: hover ?? this.hover,
+      warning: warning ?? this.warning,
+      overlayBorderLayer: overlayBorderLayer ?? this.overlayBorderLayer,
+      borderDark: borderDark ?? this.borderDark,
+      borderLight: borderLight ?? this.borderLight,
+      buttonIdle: buttonIdle ?? this.buttonIdle,
+      buttonTextIdle: buttonTextIdle ?? this.buttonTextIdle,
+      buttonDisabled: buttonDisabled ?? this.buttonDisabled,
+      buttonTextDisabled: buttonTextDisabled ?? this.buttonTextDisabled,
+      buttonHover: buttonHover ?? this.buttonHover,
+      buttonTextHover: buttonTextHover ?? this.buttonTextHover,
+      buttonActive: buttonActive ?? this.buttonActive,
+      buttonTextActive: buttonTextActive ?? this.buttonTextActive,
+    );
+  }
 }

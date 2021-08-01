@@ -9,6 +9,12 @@ export 'src/brick/brick_sortable_list.dart';
 export 'src/brick/brick_file_tree_browser.dart';
 export 'src/brick/brick_scroll_stack.dart';
 
+export 'src/style/brick_theme_provider.dart';
+export 'src/style/brick_theme.dart';
+export 'src/style/brick_shadow_theme.dart';
+export 'src/style/brick_radius_theme.dart';
+export 'src/style/brick_color_theme.dart';
+
 export 'src/const/brick_colors.dart';
 
 export 'src/const/border_radius.dart';

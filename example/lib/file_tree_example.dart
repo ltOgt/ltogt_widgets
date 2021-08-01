@@ -8,12 +8,20 @@ void main() {
       title: 'Brick Button Example',
       theme: ThemeData.dark(),
       home: Scaffold(
-        body: Center(
-          child: BrickFileTreeBrowser(
-            rootDir: rootDir,
-            pathIndex: 4,
-            path: FileTreePath("home/omni/repos/package/ltogt_widgets".split("/")),
-          ),
+        body: Stack(
+          children: [
+            Center(
+              child: SizedBox(
+                width: 500,
+                height: 500,
+                child: BrickFileTreeBrowser(
+                  rootDir: rootDir,
+                  pathIndex: 4,
+                  path: FileTreePath("home/omni/repos/package/ltogt_widgets".split("/")),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     ),

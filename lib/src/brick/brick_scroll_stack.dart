@@ -22,6 +22,7 @@ class BrickScrollStack extends StatelessWidget {
     this.trailingCross,
     this.trailingCrossShadow,
     this.trailingCrossExtend,
+    this.scrollToEnd = false,
   }) : super(key: key);
 
   /// Whether to scroll [children] on [Axis.horizontal] or [Axis.vertical].
@@ -73,6 +74,9 @@ class BrickScrollStack extends StatelessWidget {
   /// Extend of optional [trailingCross]
   final double? trailingCrossExtend; // TODO remove
 
+  /// {@marco scrollToEnd}
+  final bool scrollToEnd;
+
   bool get _isHorizontal => scrollDirection == Axis.horizontal;
   Axis get _crossAxis => _isHorizontal ? Axis.vertical : Axis.horizontal;
   Alignment get _mainAxisStart => _isHorizontal ? Alignment.centerLeft : Alignment.topCenter;
@@ -82,37 +86,6 @@ class BrickScrollStack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (false) // debug
-      return Flexible(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: Stack(
-                children: [
-                  AxisSizedBox(
-                    mainAxis: scrollDirection,
-                    mainAxisSize: double.infinity,
-                    child: SingleChildScroller(
-                      reverse: false, // TODO expose
-                      scrollToEnd: true, // TODO expose
-                      scrollDirection: scrollDirection,
-                      child: RowOrColumn(
-                        axis: scrollDirection,
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: children,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-
     return AxisSizedBox(
       mainAxis: scrollDirection,
       mainAxisSize: mainAxisSize,
@@ -162,7 +135,7 @@ class BrickScrollStack extends StatelessWidget {
                         mainAxisSize: double.infinity,
                         child: SingleChildScroller(
                           reverse: false, // TODO expose
-                          scrollToEnd: true, // TODO expose
+                          scrollToEnd: scrollToEnd,
                           scrollDirection: scrollDirection,
                           child: RowOrColumn(
                             axis: scrollDirection,

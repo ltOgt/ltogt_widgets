@@ -8,6 +8,8 @@ import 'package:ltogt_widgets/src/const/sizes.dart';
 import 'package:ltogt_widgets/src/enum/brick_elevation.dart';
 import 'package:ltogt_widgets/src/enum/sort_order.dart';
 import 'package:ltogt_widgets/src/style/brick_theme_provider.dart';
+import 'package:ltogt_widgets/src/util/align_positioned.dart';
+import 'package:ltogt_widgets/src/util/single_child_scroller.dart';
 
 class BrickSortableList<T> extends StatefulWidget {
   const BrickSortableList({
@@ -244,45 +246,30 @@ class _RecessShadow extends StatelessWidget {
 
     final theme = BrickThemeProvider.getTheme(context);
 
-    double? top, left, bottom, right, height, width;
+    double? height, width;
     Offset offset = Offset.zero;
     if (alignment == Alignment.topCenter) {
-      top = 0;
-      right = 0;
-      left = 0;
       height = 0;
       offset = const Offset(0, -2);
     }
     //
     else if (alignment == Alignment.centerLeft) {
-      bottom = 0;
-      top = 0;
-      left = 0;
       width = 0;
       offset = const Offset(-2, 0);
     }
     //
     else if (alignment == Alignment.centerRight) {
-      bottom = 0;
-      top = 0;
-      right = 0;
       width = 0;
       offset = const Offset(2, 0);
     }
     //
     else if (alignment == Alignment.bottomCenter) {
-      bottom = 0;
-      right = 0;
-      left = 0;
       height = 0;
       offset = const Offset(0, 2);
     }
 
-    return Positioned(
-      top: top,
-      right: right,
-      left: left,
-      bottom: bottom,
+    return AlignPositioned(
+      alignment: alignment,
       child: Container(
         height: height,
         width: width,
@@ -349,7 +336,6 @@ class _OrderBar<T> extends StatelessWidget {
         ],
       ),
       padding: PADDING_ALL_10,
-      // TODO-? add SingleChildScroller
       child: ConditionalParentWidget(
         condition: childBelow != null,
         parentBuilder: (child) => Column(
@@ -362,40 +348,43 @@ class _OrderBar<T> extends StatelessWidget {
             childBelow!,
           ],
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            BrickIconButton(
-              size: SMALL_BUTTON_SIZE,
-              onPressed: (_) => onToggleDirection(),
-              icon: isOrderDesc ? _arrowDownIcon : _arrowUpIcon,
-            ),
-            ...ListGenerator.seperated(
-              seperator: SIZED_BOX_10,
-              leadingSeperator: true,
-              list: sortOptions,
-              builder: (SortingOption<T> option, int i) {
-                return BrickButton(
-                  child: Text(option.name),
-                  isActive: sortOption == option,
-                  onPress: () => onChangeOrder(
-                    option,
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                );
-              },
-            ),
-            ...WidgetListGenerator.spaced(
-              uniform: 5,
-              beforeFirst: true,
-              widgets: trailingClose,
-            ),
-            const Expanded(child: SizedBox()),
-            ...WidgetListGenerator.spaced(
-              uniform: 5,
-              widgets: trailing,
-            ),
-          ],
+        child: SingleChildScroller(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              BrickIconButton(
+                size: SMALL_BUTTON_SIZE,
+                onPressed: (_) => onToggleDirection(),
+                icon: isOrderDesc ? _arrowDownIcon : _arrowUpIcon,
+              ),
+              ...ListGenerator.seperated(
+                seperator: SIZED_BOX_10,
+                leadingSeperator: true,
+                list: sortOptions,
+                builder: (SortingOption<T> option, int i) {
+                  return BrickButton(
+                    child: Text(option.name),
+                    isActive: sortOption == option,
+                    onPress: () => onChangeOrder(
+                      option,
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  );
+                },
+              ),
+              ...WidgetListGenerator.spaced(
+                uniform: 5,
+                beforeFirst: true,
+                widgets: trailingClose,
+              ),
+              // const Expanded(child: SizedBox()),
+              // ...WidgetListGenerator.spaced(
+              //   uniform: 5,
+              //   widgets: trailing,
+              // ),
+            ],
+          ),
         ),
       ),
     );

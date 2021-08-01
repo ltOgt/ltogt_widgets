@@ -11,8 +11,8 @@ void main() {
         body: Stack(
           children: [
             Center(
-              child: SizedBox(
-                width: 500,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 50),
                 height: 500,
                 child: BrickFileTreeBrowser(
                   rootDir: rootDir,

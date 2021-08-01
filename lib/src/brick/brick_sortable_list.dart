@@ -156,43 +156,52 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
         borderRadius: theme.radius.medium,
         child: Stack(
           children: [
-            /// ======================================================= LIST
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: theme.radius.medium,
-                  border: Border.all(color: theme.color.borderDark),
+            BrickScrollStack(
+              scrollDirection: Axis.vertical,
+              leadingShadow: [
+                BoxShadow(
+                  spreadRadius: 2,
+                  blurRadius: 4,
+                  offset: const Offset(0, -1),
+                  color: theme.color.shadow,
+                )
+              ],
+              trailingShadow: [
+                BoxShadow(
+                  spreadRadius: 2,
+                  blurRadius: 4,
+                  offset: const Offset(0, 1),
+                  color: theme.color.shadow,
+                )
+              ],
+              leadingCrossShadow: [
+                BoxShadow(
+                  spreadRadius: 2,
+                  blurRadius: 4,
+                  offset: const Offset(-1, 0),
+                  color: theme.color.shadow,
+                )
+              ],
+              trailingCrossShadow: [
+                BoxShadow(
+                  spreadRadius: 2,
+                  blurRadius: 4,
+                  offset: const Offset(1, 0),
+                  color: theme.color.shadow,
+                )
+              ],
+              childPadding: _calculateContentPadding(),
+              children: [
+                SIZED_BOX_5,
+                // . not using leading/trailing since different sizes
+                ...ListGenerator.seperated(
+                  seperator: SIZED_BOX_2,
+                  list: __sortedChildren,
+                  builder: (ChildData data, int i) => data.build(context),
                 ),
-                child: Padding(
-                  padding: _calculateContentPadding(),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        SIZED_BOX_5,
-                        ...ListGenerator.seperated(
-                          seperator: SIZED_BOX_2,
-                          list: __sortedChildren,
-                          builder: (ChildData data, int i) => data.build(context),
-                        ),
-                        SIZED_BOX_5,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+                SIZED_BOX_5,
+              ],
             ),
-
-            /// ======================================================= RECESS SHADOWS
-            if (widget.elevation.isRecessed) ...[
-              const _RecessShadow(alignment: Alignment.topCenter),
-              const _RecessShadow(alignment: Alignment.centerLeft),
-              const _RecessShadow(alignment: Alignment.bottomCenter),
-              const _RecessShadow(alignment: Alignment.centerRight),
-            ],
-
-            /// ======================================================= ORDER BAR
             Positioned(
               top: widget.isBarOnTop ? 0 : null,
               bottom: widget.isBarOnTop ? null : 0,
@@ -209,77 +218,6 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
                 trailingClose: widget.sortBarTrailingClose,
                 childBelow: widget.sortBarChildBelow,
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-//
-//
-//
-//
-class _RecessShadow extends StatelessWidget {
-  const _RecessShadow({
-    Key? key,
-    required this.alignment,
-  }) : super(key: key);
-
-  final Alignment alignment;
-  void assertAlignment() {
-    assert(
-      [
-        Alignment.centerLeft,
-        Alignment.centerRight,
-        Alignment.topCenter,
-        Alignment.bottomCenter,
-      ].contains(alignment),
-      "Unsupported alignment: $alignment",
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    assertAlignment();
-
-    final theme = BrickThemeProvider.getTheme(context);
-
-    double? height, width;
-    Offset offset = Offset.zero;
-    if (alignment == Alignment.topCenter) {
-      height = 0;
-      offset = const Offset(0, -2);
-    }
-    //
-    else if (alignment == Alignment.centerLeft) {
-      width = 0;
-      offset = const Offset(-2, 0);
-    }
-    //
-    else if (alignment == Alignment.centerRight) {
-      width = 0;
-      offset = const Offset(2, 0);
-    }
-    //
-    else if (alignment == Alignment.bottomCenter) {
-      height = 0;
-      offset = const Offset(0, 2);
-    }
-
-    return AlignPositioned(
-      alignment: alignment,
-      child: Container(
-        height: height,
-        width: width,
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              spreadRadius: 2,
-              blurRadius: 4,
-              offset: offset,
-              color: theme.color.shadow,
             ),
           ],
         ),

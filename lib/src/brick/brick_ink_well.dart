@@ -8,12 +8,14 @@ class BrickInkWell extends StatelessWidget {
     required this.child,
     this.color,
     this.hoverColor,
+    this.onHover,
   }) : super(key: key);
 
   final Function(Rect? globalRect)? onTap;
   final Widget child;
   final Color? color;
   final Color? hoverColor;
+  final Function(bool hovering)? onHover;
 
   final GlobalKey globalKey = GlobalKey();
 
@@ -24,6 +26,7 @@ class BrickInkWell extends StatelessWidget {
       child: InkWell(
         key: globalKey,
         hoverColor: hoverColor,
+        onHover: onHover,
         onTap: null == onTap
             ? null
             : () => onTap!.call(

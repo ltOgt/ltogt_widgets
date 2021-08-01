@@ -13,7 +13,7 @@ class BrickFileTreeBrowser extends StatefulWidget {
   const BrickFileTreeBrowser({
     Key? key,
     required this.rootDir,
-    this.filePathBarHeight = 30,
+    this.filePathBarHeight = 28,
     required this.path,
     required this.pathIndex,
   }) : super(key: key);
@@ -86,148 +86,80 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
           bottom: 0,
           left: 0,
           right: 0,
-          child: Container(
-            height: widget.filePathBarHeight - 2 * BrickFileTreeBrowser._borderWidth,
-            decoration: BoxDecoration(
-              borderRadius: BORDER_RADIUS_ALL_10,
-              color: BrickColors.GREY_2,
+          child: BrickScrollStack(
+            scrollDirection: Axis.horizontal,
+            crossAxisSize: widget.filePathBarHeight,
+            leading: BrickButton(
+              borderRadius: BrickButton.defaultBorderRadius.copyWith(
+                topRight: Radius.circular(0),
+                bottomRight: Radius.circular(0),
+              ),
+              onPress: () {},
+              padding: BrickFileTreeBrowser.iconButtonPadding,
+              child: FittedBox(
+                fit: BoxFit.contain,
+                child: Icon(
+                  Icons.home,
+                ),
+              ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  height: widget.filePathBarHeight,
-                  child: BrickButton(
-                    borderRadius: BrickButton.defaultBorderRadius.copyWith(
-                      topRight: Radius.circular(0),
-                      bottomRight: Radius.circular(0),
-                    ),
-                    onPress: () {},
-                    padding: BrickFileTreeBrowser.iconButtonPadding,
-                    child: FittedBox(
-                      fit: BoxFit.contain,
-                      child: Icon(
-                        Icons.home,
-                      ),
+            trailing: BrickButton(
+              borderRadius: BrickButton.defaultBorderRadius.copyWith(
+                topLeft: Radius.circular(0),
+                bottomLeft: Radius.circular(0),
+              ),
+              onPress: () {},
+              padding: BrickFileTreeBrowser.iconButtonPadding,
+              child: FittedBox(
+                fit: BoxFit.contain,
+                child: Icon(
+                  Icons.arrow_back,
+                ),
+              ),
+            ),
+            leadingShadow: const [
+              BoxShadow(
+                color: Colors.black,
+                blurRadius: 5,
+                spreadRadius: 2,
+                offset: Offset(-1, 0),
+              ),
+            ],
+            trailingShadow: const [
+              BoxShadow(
+                color: Colors.black,
+                blurRadius: 5,
+                spreadRadius: 2,
+                offset: Offset(1, 0),
+              ),
+            ],
+            leadingCross: const _FilePathGuardRail(),
+            trailingCross: const _FilePathGuardRail(),
+            children: ListGenerator.forEach(
+              list: widget.path.path,
+              builder: (String segment, int i) => BrickButton(
+                // Add border only to right, otherwise always 2 pixel border (1 of each neighbour)
+                // Also enables to have single pixel border along whole guardRail
+                border: const Border(
+                  right: BorderSide(color: BrickColors.borderDark, width: 1),
+                ),
+                borderRadius: null,
+                child: ConditionalParentWidget(
+                  condition: widget.filePathBarHeight < 30,
+                  parentBuilder: (child) => FittedBox(
+                    child: child,
+                  ),
+                  child: Center(
+                    child: Text(
+                      segment,
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),
-                Flexible(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const _FilePathGuardRail(),
-                      Stack(
-                        children: [
-                          SizedBox(
-                            width: double.infinity,
-                            child: SingleChildScroller(
-                              reverse: false,
-                              scrollToEnd: true,
-                              scrollDirection: Axis.horizontal,
-                              child: SizedBox(
-                                height: widget.filePathBarHeight -
-                                    2 * BrickFileTreeBrowser._borderWidth -
-                                    2 * _FilePathGuardRail.totalWidth,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: ListGenerator.forEach(
-                                    list: widget.path.path,
-                                    builder: (String segment, int i) => BrickButton(
-                                        // Add border only to right, otherwise always 2 pixel border (1 of each neighbour)
-                                        // Also enables to have single pixel border along whole guardRail
-                                        border: const Border(
-                                          right: BorderSide(color: BrickColors.borderDark, width: 1),
-                                        ),
-                                        borderRadius: null,
-                                        child: ConditionalParentWidget(
-                                          condition: widget.filePathBarHeight < 30,
-                                          parentBuilder: (child) => FittedBox(
-                                            child: child,
-                                          ),
-                                          child: Center(
-                                            child: Text(
-                                              segment,
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ),
-                                        ),
-                                        // child: FittedBox(
-                                        //   fit: BoxFit.contain,
-                                        //   alignment: Alignment.center,
-                                        //   child: Text(segment),
-                                        // ),
-
-                                        padding: PADDING_HORIZONTAL_5,
-                                        onPress: () {},
-                                        isActive: i == widget.pathIndex),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            left: 0,
-                            child: Container(
-                              height: widget.filePathBarHeight,
-                              width: 0,
-                              decoration: BoxDecoration(
-                                color: Colors.black,
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black,
-                                    blurRadius: 5,
-                                    spreadRadius: 2,
-                                    offset: Offset(-1, 0),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            right: 0,
-                            child: Container(
-                              height: widget.filePathBarHeight,
-                              width: 0,
-                              decoration: BoxDecoration(
-                                color: Colors.black,
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black,
-                                    blurRadius: 5,
-                                    spreadRadius: 2,
-                                    offset: Offset(1, 0),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const _FilePathGuardRail(),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: widget.filePathBarHeight,
-                  child: BrickButton(
-                    borderRadius: BrickButton.defaultBorderRadius.copyWith(
-                      topLeft: Radius.circular(0),
-                      bottomLeft: Radius.circular(0),
-                    ),
-                    onPress: () {},
-                    padding: BrickFileTreeBrowser.iconButtonPadding,
-                    child: FittedBox(
-                      fit: BoxFit.contain,
-                      child: Icon(
-                        Icons.arrow_back,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+                padding: PADDING_HORIZONTAL_5,
+                onPress: () {},
+                isActive: i == widget.pathIndex,
+              ),
             ),
           ),
         ),

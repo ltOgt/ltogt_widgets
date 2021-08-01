@@ -10,18 +10,18 @@ class BrickScrollStack extends StatelessWidget {
     Key? key,
     required this.scrollDirection,
     this.mainAxisSize,
-    required this.crossAxisSize,
+    this.crossAxisSize,
     required this.children,
     this.leading,
     this.leadingShadow,
     this.trailing,
     this.trailingShadow,
-    this.guardRail,
-    this.guardRailShadow,
-    this.guardRailCrossAxisSize,
-    this.guardRailTwo,
-    this.guardRailTwoShadow,
-    this.guardRailTwoCrossAxisSize,
+    this.leadingCross,
+    this.leadingCrossShadow,
+    this.leadingCrossExtend,
+    this.trailingCross,
+    this.trailingCrossShadow,
+    this.trailingCrossExtend,
   }) : super(key: key);
 
   /// Whether to scroll [children] on [Axis.horizontal] or [Axis.vertical].
@@ -34,7 +34,7 @@ class BrickScrollStack extends StatelessWidget {
 
   // TODO might one day want to expose axis/crossAxis paramters from row/column and make this nullable
   /// The extend of the crossAxis.
-  final double crossAxisSize;
+  final double? crossAxisSize;
 
   /// The content that is to be scrolled in [scrollDirection].
   final List<Widget> children;
@@ -54,25 +54,24 @@ class BrickScrollStack extends StatelessWidget {
   final List<BoxShadow>? trailingShadow;
 
   /// Optional rail to surround [children] on the cross axis with.
-  final Widget? guardRail;
+  final Widget? leadingCross;
 
-  /// Optional shadow for [guardRail]
-  /// Also possible for null [guardRail].
-  final List<BoxShadow>? guardRailShadow;
+  /// Optional shadow for [leadingCross]
+  /// Also possible for null [leadingCross].
+  final List<BoxShadow>? leadingCrossShadow;
 
-  /// Extend of optional [guardRail](/[guardRailTwo])
-  final double? guardRailCrossAxisSize;
+  /// Extend of optional [leadingCross]
+  final double? leadingCrossExtend; // TODO remove
 
   /// Optional rail to add to the cross axis end of [children].
-  /// Replaces [guardRail] on that side.
-  final Widget? guardRailTwo;
+  final Widget? trailingCross;
 
-  /// Optional shadow for [guardRailTwo]
-  /// Also possible for null [guardRailTwo].
-  final List<BoxShadow>? guardRailTwoShadow;
+  /// Optional shadow for [trailingCross]
+  /// Also possible for null [trailingCross].
+  final List<BoxShadow>? trailingCrossShadow;
 
-  /// Extend of optional [guardRailTwo]
-  final double? guardRailTwoCrossAxisSize;
+  /// Extend of optional [trailingCross]
+  final double? trailingCrossExtend; // TODO remove
 
   bool get _isHorizontal => scrollDirection == Axis.horizontal;
   Axis get _crossAxis => _isHorizontal ? Axis.vertical : Axis.horizontal;
@@ -83,6 +82,37 @@ class BrickScrollStack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (false) // debug
+      return Flexible(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: Stack(
+                children: [
+                  AxisSizedBox(
+                    mainAxis: scrollDirection,
+                    mainAxisSize: double.infinity,
+                    child: SingleChildScroller(
+                      reverse: false, // TODO expose
+                      scrollToEnd: true, // TODO expose
+                      scrollDirection: scrollDirection,
+                      child: RowOrColumn(
+                        axis: scrollDirection,
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: children,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+
     return AxisSizedBox(
       mainAxis: scrollDirection,
       mainAxisSize: mainAxisSize,
@@ -91,6 +121,7 @@ class BrickScrollStack extends StatelessWidget {
       /// --------------------------------------------------------------------------- Outer Row/Column for [leading] and [trailing]
       child: RowOrColumn(
         axis: scrollDirection,
+        mainAxisSize: MainAxisSize.min,
         children: [
           /// {@template leadingTrailing}
           /// Shadow for [leading] and [trailing] has to be rendered via stack, so it is visible above [chilren].
@@ -99,245 +130,116 @@ class BrickScrollStack extends StatelessWidget {
           if (leading != null) leading!,
 
           /// ----------------------------------------------------------------------- Cross Axis Column/Row for guards
-          RowOrColumn(
-            axis: _crossAxis,
-            children: [
-              /// ------------------------------------------------------------------- [guardRail] at [_crossAxisStart]
-              if (guardRail != null)
-                AxisSizedBox(
-                  mainAxis: scrollDirection,
-                  crossAxisSize: guardRailCrossAxisSize,
-                  child: guardRail!,
-                ),
-
-              /// ------------------------------------------------------------------- Stack for [children] plus [leadingShadow] and [trailingShadow]
-              /// -------------------------------------------------------------------                      plus [guardRailShadow] ( and [guardRailTwoShadow])
-              Stack(
-                children: [
-                  /// --------------------------------------------------------------- Scrollable for [children]
-                  SingleChildScroller(
-                    reverse: false, // TODO expose
-                    scrollToEnd: true, // TODO expose
-                    scrollDirection: scrollDirection,
-                    child: RowOrColumn(
-                      axis: scrollDirection,
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: children,
+          Flexible(
+            child: RowOrColumn(
+              axis: _crossAxis,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              leading: (leadingCross == null)
+                  ? null
+                  : AxisSizedBox(
+                      mainAxis: scrollDirection,
+                      crossAxisSize: leadingCrossExtend,
+                      child: leadingCross!,
                     ),
+              trailing: (trailingCross == null)
+                  ? null
+                  : AxisSizedBox(
+                      mainAxis: scrollDirection,
+                      crossAxisSize: leadingCrossExtend,
+                      child: trailingCross,
+                    ),
+
+              /// --------------------------------------------------------------------- Stack for [children] plus [leadingShadow] and [trailingShadow]
+              /// ---------------------------------------------------------------------                      plus [leadingCrossShadow] ( and [guardRailTwoShadow])
+              child: Expanded(
+                /// : Clip Shadows
+                child: ClipRect(
+                  child: Stack(
+                    children: [
+                      /// ----------------------------------------------------------------- Scrollable for [children]
+                      AxisSizedBox(
+                        mainAxis: scrollDirection,
+                        mainAxisSize: double.infinity,
+                        child: SingleChildScroller(
+                          reverse: false, // TODO expose
+                          scrollToEnd: true, // TODO expose
+                          scrollDirection: scrollDirection,
+                          child: RowOrColumn(
+                            axis: scrollDirection,
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: children,
+                          ),
+                        ),
+                      ),
+
+                      /// ----------------------------------------------------------------- Layer Above: [leadingCrossShadow] (and [trailingCrossShadow])
+                      /// ------------------------------------------------- [leadingCrossShadow]
+                      if (leadingCrossShadow != null)
+                        AlignPositioned(
+                          alignment: _crossAxisStart,
+                          child: ShadowBox(
+                            shadow: leadingCrossShadow,
+                            child: AxisSizedBox(
+                              mainAxis: scrollDirection,
+                              crossAxisSize: leadingCrossExtend,
+                            ),
+                          ),
+                        ),
+
+                      /// ------------------------------------------------- [leadingCrossShadow] / [trailingCrossShadow]
+                      if (trailingCrossShadow != null)
+                        AlignPositioned(
+                          alignment: _crossAxisEnd,
+                          child: ShadowBox(
+                            shadow: trailingCrossShadow,
+                            child: AxisSizedBox(
+                              mainAxis: scrollDirection,
+                              crossAxisSize: trailingCrossExtend,
+                            ),
+                          ),
+                        ),
+
+                      /// ----------------------------------------------------------------- Layer Above: [leadingShadow] and [trailingShadow]
+                      /// ------------------------------------------------- [leadingShadow]
+                      if (leadingShadow != null)
+                        AlignPositioned(
+                          alignment: _mainAxisStart,
+                          child: Container(
+                            height: _isHorizontal ? crossAxisSize : 0,
+                            width: _isHorizontal ? 0 : crossAxisSize,
+                            decoration: BoxDecoration(
+                              //color: Colors.black, // TODO is the needed?
+                              boxShadow: leadingShadow,
+                            ),
+                          ),
+                        ),
+
+                      /// ------------------------------------------------- [trailingShadow]
+                      if (trailingShadow != null)
+                        AlignPositioned(
+                          alignment: _mainAxisEnd,
+                          child: Container(
+                            height: _isHorizontal ? crossAxisSize : 0,
+                            width: _isHorizontal ? 0 : crossAxisSize,
+                            decoration: BoxDecoration(
+                              //color: Colors.black, // TODO is the needed?
+                              boxShadow: trailingShadow,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-
-                  /// --------------------------------------------------------------- Layer Above: [guardRailShadow] (and [guardRailTwoShadow])
-                  /// ----------------------------------------------- [guardRailShadow]
-                  if (guardRailShadow != null)
-                    AlignPositioned(
-                      alignment: _crossAxisStart,
-                      child: ShadowBox(
-                        shadow: guardRailShadow,
-                        child: AxisSizedBox(
-                          mainAxis: scrollDirection,
-                          crossAxisSize: guardRailCrossAxisSize,
-                        ),
-                      ),
-                    ),
-
-                  /// ----------------------------------------------- [guardRailShadow] / [guardRailShadowTwo]
-                  if ((guardRailTwoShadow != null) || (guardRailShadow != null))
-                    AlignPositioned(
-                      alignment: _crossAxisEnd,
-                      child: ShadowBox(
-                        shadow: guardRailTwoShadow ?? guardRailShadow,
-                        child: AxisSizedBox(
-                          mainAxis: scrollDirection,
-                          crossAxisSize: guardRailTwoCrossAxisSize ?? guardRailCrossAxisSize,
-                        ),
-                      ),
-                    ),
-
-                  /// --------------------------------------------------------------- Layer Above: [leadingShadow] and [trailingShadow]
-                  /// ----------------------------------------------- [leadingShadow]
-                  if (leadingShadow != null)
-                    AlignPositioned(
-                      alignment: _mainAxisStart,
-                      child: Container(
-                        height: _isHorizontal ? crossAxisSize : 0,
-                        width: _isHorizontal ? 0 : crossAxisSize,
-                        decoration: BoxDecoration(
-                          //color: Colors.black, // TODO is the needed?
-                          boxShadow: leadingShadow,
-                        ),
-                      ),
-                    ),
-
-                  /// ----------------------------------------------- [trailingShadow]
-                  if (trailingShadow != null)
-                    AlignPositioned(
-                      alignment: _mainAxisEnd,
-                      child: Container(
-                        height: _isHorizontal ? crossAxisSize : 0,
-                        width: _isHorizontal ? 0 : crossAxisSize,
-                        decoration: BoxDecoration(
-                          //color: Colors.black, // TODO is the needed?
-                          boxShadow: leadingShadow,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-
-              /// ------------------------------------------------------------------- [guardRail] / [guardRailTwo] at [_crossAxisEnd]
-              if (guardRailTwo != null || guardRail != null)
-                AxisSizedBox(
-                  mainAxis: scrollDirection,
-                  crossAxisSize: guardRailCrossAxisSize,
-                  child: guardRailTwo ?? guardRail!,
                 ),
-            ],
+              ),
+            ),
           ),
 
           /// {@macro leadingTrailing}
           if (trailing != null) trailing!,
         ],
       ),
-    );
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: widget.filePathBarHeight,
-          child: BrickButton(
-            borderRadius: BrickButton.defaultBorderRadius.copyWith(
-              topRight: Radius.circular(0),
-              bottomRight: Radius.circular(0),
-            ),
-            onPress: () {},
-            padding: BrickFileTreeBrowser.iconButtonPadding,
-            child: FittedBox(
-              fit: BoxFit.contain,
-              child: Icon(
-                Icons.home,
-              ),
-            ),
-          ),
-        ),
-        Flexible(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const _FilePathGuardRail(),
-              Stack(
-                children: [
-                  SizedBox(
-                    width: double.infinity,
-                    child: SingleChildScroller(
-                      reverse: false,
-                      scrollToEnd: true,
-                      scrollDirection: Axis.horizontal,
-                      child: SizedBox(
-                        height: widget.filePathBarHeight -
-                            2 * BrickFileTreeBrowser._borderWidth -
-                            2 * _FilePathGuardRail.totalWidth,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: ListGenerator.forEach(
-                            list: widget.path.path,
-                            builder: (String segment, int i) => BrickButton(
-                                // Add border only to right, otherwise always 2 pixel border (1 of each neighbour)
-                                // Also enables to have single pixel border along whole guardRail
-                                border: const Border(
-                                  right: BorderSide(color: BrickColors.borderDark, width: 1),
-                                ),
-                                borderRadius: null,
-                                child: ConditionalParentWidget(
-                                  condition: widget.filePathBarHeight < 30,
-                                  parentBuilder: (child) => FittedBox(
-                                    child: child,
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      segment,
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ),
-                                // child: FittedBox(
-                                //   fit: BoxFit.contain,
-                                //   alignment: Alignment.center,
-                                //   child: Text(segment),
-                                // ),
-
-                                padding: PADDING_HORIZONTAL_5,
-                                onPress: () {},
-                                isActive: i == widget.pathIndex),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 0,
-                    child: Container(
-                      height: widget.filePathBarHeight,
-                      width: 0,
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black,
-                            blurRadius: 5,
-                            spreadRadius: 2,
-                            offset: Offset(-1, 0),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    right: 0,
-                    child: Container(
-                      height: widget.filePathBarHeight,
-                      width: 0,
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black,
-                            blurRadius: 5,
-                            spreadRadius: 2,
-                            offset: Offset(1, 0),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const _FilePathGuardRail(),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: widget.filePathBarHeight,
-          child: BrickButton(
-            borderRadius: BrickButton.defaultBorderRadius.copyWith(
-              topLeft: Radius.circular(0),
-              bottomLeft: Radius.circular(0),
-            ),
-            onPress: () {},
-            padding: BrickFileTreeBrowser.iconButtonPadding,
-            child: FittedBox(
-              fit: BoxFit.contain,
-              child: Icon(
-                Icons.arrow_back,
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

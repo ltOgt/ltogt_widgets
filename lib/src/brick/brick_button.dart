@@ -173,15 +173,17 @@ class BrickButton extends StatelessWidget {
               ),
               child: Padding(
                 padding: padding,
-                child: child ??
-                    Text(
-                      text!,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: _isDisabled ? theme.color.buttonTextDisabled : theme.color.buttonTextIdle,
-                        fontSize: fontSize,
+                child: Center(
+                  child: child ??
+                      Text(
+                        text!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: _isDisabled ? theme.color.buttonTextDisabled : theme.color.buttonTextIdle,
+                          fontSize: fontSize,
+                        ),
                       ),
-                    ),
+                ),
               ),
             ),
           ),

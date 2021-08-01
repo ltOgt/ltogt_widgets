@@ -22,10 +22,12 @@ class SingleChildScroller extends StatefulWidget {
   /// E.g. start right when reading direction is left-to-right
   final bool reverse;
 
+  ///{@template scrollToEnd}
   /// Whether to scroll to the end of the [scrollDirection] (including [reverse]) at the start of this widgets life.
   /// E.g. `reverse=false`, `scrollToEnd=true` leads to the content starting left, but the viewport starting right.
   /// If the child does not fill the entire viewport, this means that empty space is on the right.
   /// If the child fills more than the viewport, this means that the start of child is scrolled out of the viewport.
+  /// {@endtemplate}
   final bool scrollToEnd;
 
   @override

@@ -11,7 +11,7 @@ void main() {
         body: Center(
           child: Container(
             height: 500,
-            padding: EdgeInsets.symmetric(horizontal: 50),
+            padding: EdgeInsets.all(50),
             child: TodoWidget(),
           ),
         ),

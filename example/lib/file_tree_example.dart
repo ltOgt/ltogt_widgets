@@ -12,7 +12,7 @@ void main() {
           children: [
             Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 50),
+                padding: const EdgeInsets.all(50),
                 height: 500,
                 child: BrickFileTreeBrowser(
                   rootDir: rootDir,

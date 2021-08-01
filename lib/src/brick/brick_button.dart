@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:ltogt_utils_flutter/ltogt_utils_flutter.dart';
 import 'package:ltogt_widgets/ltogt_widgets.dart';
 import 'package:ltogt_widgets/src/inner_shadow/bend_mode.dart';
-import 'package:ltogt_widgets/src/style/brick_color_theme.dart';
 import 'package:ltogt_widgets/src/style/brick_theme_provider.dart';
 
 class BrickButton extends StatelessWidget {

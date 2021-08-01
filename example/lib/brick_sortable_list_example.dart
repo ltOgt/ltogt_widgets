@@ -8,7 +8,11 @@ void main() {
       theme: ThemeData.dark(),
       home: const Scaffold(
         body: Center(
-          child: TodoWidget(),
+          child: SizedBox(
+            height: 500,
+            width: 500,
+            child: TodoWidget(),
+          ),
         ),
       ),
     ),

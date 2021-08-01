@@ -45,6 +45,9 @@ class BrickColorTheme {
   /// E.g. errors or confirm exit
   final Color warning;
 
+  /// Used as backdrop for dialoges etc.
+  final Color overlayBorderLayer;
+
   // ============================================================== Border
   /// Border Color (Dark)
   final Color borderDark;
@@ -81,6 +84,7 @@ class BrickColorTheme {
     required this.bendDark,
     required this.hover,
     required this.warning,
+    required this.overlayBorderLayer,
     required this.borderDark,
     required this.borderLight,
     required this.buttonIdle,
@@ -135,6 +139,8 @@ class _BrickColorThemeDefaults implements BrickColorTheme {
   final Color hover = _whiteTransparent;
   @override
   final Color warning = _red;
+  @override
+  final Color overlayBorderLayer = const Color(0x22000000);
 
   @override
   final Color borderDark = _black;

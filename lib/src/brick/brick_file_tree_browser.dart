@@ -136,36 +136,33 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
                                   children: ListGenerator.forEach(
                                     list: widget.path.path,
                                     builder: (String segment, int i) => BrickButton(
-                                      // Add border only to right, otherwise always 2 pixel border (1 of each neighbour)
-                                      // Also enables to have single pixel border along whole guardRail
-                                      border: const Border(
-                                        right: BorderSide(color: BrickColors.borderDark, width: 1),
-                                      ),
-                                      borderRadius: null,
-                                      child: ConditionalParentWidget(
-                                        condition: widget.filePathBarHeight < 30,
-                                        parentBuilder: (child) => FittedBox(
-                                          child: child,
+                                        // Add border only to right, otherwise always 2 pixel border (1 of each neighbour)
+                                        // Also enables to have single pixel border along whole guardRail
+                                        border: const Border(
+                                          right: BorderSide(color: BrickColors.borderDark, width: 1),
                                         ),
-                                        child: Center(
-                                          child: Text(
-                                            segment,
-                                            textAlign: TextAlign.center,
+                                        borderRadius: null,
+                                        child: ConditionalParentWidget(
+                                          condition: widget.filePathBarHeight < 30,
+                                          parentBuilder: (child) => FittedBox(
+                                            child: child,
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              segment,
+                                              textAlign: TextAlign.center,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      // child: FittedBox(
-                                      //   fit: BoxFit.contain,
-                                      //   alignment: Alignment.center,
-                                      //   child: Text(segment),
-                                      // ),
+                                        // child: FittedBox(
+                                        //   fit: BoxFit.contain,
+                                        //   alignment: Alignment.center,
+                                        //   child: Text(segment),
+                                        // ),
 
-                                      padding: PADDING_HORIZONTAL_5,
-                                      onPress: () {},
-                                      mode: (i == widget.pathIndex) ? BendMode.CONCAVE : BendMode.CONVEX,
-                                      bgColor:
-                                          (i == widget.pathIndex) ? BrickColors.buttonActive : BrickColors.buttonIdle,
-                                    ),
+                                        padding: PADDING_HORIZONTAL_5,
+                                        onPress: () {},
+                                        isActive: i == widget.pathIndex),
                                   ),
                                 ),
                               ),

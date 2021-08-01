@@ -9,6 +9,7 @@ void main() {
       home: Scaffold(
         body: Center(
           child: BrickButton(
+            isElevated: true,
             text: "Click Me",
             onPress: () => null,
             buildMenu: (context, rect) {

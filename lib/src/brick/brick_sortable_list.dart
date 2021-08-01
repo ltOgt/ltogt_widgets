@@ -9,32 +9,6 @@ import 'package:ltogt_widgets/src/enum/brick_elevation.dart';
 import 'package:ltogt_widgets/src/enum/sort_order.dart';
 import 'package:ltogt_widgets/src/style/brick_theme_provider.dart';
 
-class SortingOption<T> {
-  /// Name of the sorting option
-  final String name;
-
-  /// Ordering function
-  final int Function(T e1, T e2) compare;
-
-  /// Annoyingly needed internally because of contravariance of parameters
-  int _compare<X>(X e1, X e2) => compare(e1 as T, e2 as T);
-
-  const SortingOption({
-    required this.name,
-    required this.compare,
-  });
-}
-
-class ChildData<T> {
-  final T data;
-  final Widget Function(BuildContext context) build;
-
-  const ChildData({
-    required this.data,
-    required this.build,
-  });
-}
-
 class BrickSortableList<T> extends StatefulWidget {
   const BrickSortableList({
     Key? key,
@@ -81,11 +55,15 @@ class BrickSortableList<T> extends StatefulWidget {
 }
 
 class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
+  /// ============================================================== State
   late SortingOption<T> __sortOption = widget.sortingOptions.first; // TODO handle empty list
+
   SortOrder __sortOrder = SortOrder.DECR;
   bool get isOrderDesc => __sortOrder == SortOrder.DECR;
 
   late List<ChildData<T>> __sortedChildren = widget.childData;
+
+  /// ============================================================== Lifecyle-Functions
 
   @override
   void initState() {
@@ -105,6 +83,8 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
       calculateBarPaddingInNextFrame();
     }
   }
+
+  /// ============================================================== State-Functions
 
   void _order(SortingOption<T> sortOption) {
     __sortedChildren.sort((ChildData<T> p1, ChildData<T> p2) => sortOption._compare<T>(p1.data, p2.data));
@@ -155,6 +135,7 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
     return basePadding.add(widget.additionalContentPadding);
   }
 
+  /// ============================================================== build
   @override
   Widget build(BuildContext context) {
     if (barPadding == null) {
@@ -203,7 +184,6 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
 
             /// ======================================================= RECESS SHADOWS
             if (widget.elevation.isRecessed) ...[
-              /// ----------------------------------------------------- Top
               const _RecessShadow(alignment: Alignment.topCenter),
               const _RecessShadow(alignment: Alignment.centerLeft),
               const _RecessShadow(alignment: Alignment.bottomCenter),
@@ -235,6 +215,10 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
   }
 }
 
+//
+//
+//
+//
 class _RecessShadow extends StatelessWidget {
   const _RecessShadow({
     Key? key,
@@ -317,6 +301,10 @@ class _RecessShadow extends StatelessWidget {
   }
 }
 
+//
+//
+//
+//
 class _OrderBar<T> extends StatelessWidget {
   const _OrderBar({
     Key? key,
@@ -388,13 +376,12 @@ class _OrderBar<T> extends StatelessWidget {
               list: sortOptions,
               builder: (SortingOption<T> option, int i) {
                 return BrickButton(
-                  mode: (sortOption == option) ? BendMode.CONCAVE : BendMode.CONVEX,
-                  bgColor: (sortOption == option) ? theme.color.buttonActive : theme.color.buttonIdle,
+                  child: Text(option.name),
+                  isActive: sortOption == option,
                   onPress: () => onChangeOrder(
                     option,
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  child: Text(option.name),
                 );
               },
             ),
@@ -413,4 +400,38 @@ class _OrderBar<T> extends StatelessWidget {
       ),
     );
   }
+}
+
+//
+//
+//
+//
+class SortingOption<T> {
+  /// Name of the sorting option
+  final String name;
+
+  /// Ordering function
+  final int Function(T e1, T e2) compare;
+
+  /// Annoyingly needed internally because of contravariance of parameters
+  int _compare<X>(X e1, X e2) => compare(e1 as T, e2 as T);
+
+  const SortingOption({
+    required this.name,
+    required this.compare,
+  });
+}
+
+//
+//
+//
+//
+class ChildData<T> {
+  final T data;
+  final Widget Function(BuildContext context) build;
+
+  const ChildData({
+    required this.data,
+    required this.build,
+  });
 }

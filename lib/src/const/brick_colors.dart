@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+@Deprecated("Use Brick Theme instead")
 class BrickColors {
   static const BLACK = Color(0xFF000000);
   static const WHITE = Color(0xFFFFFFFF);
@@ -37,4 +38,6 @@ class BrickColors {
   static const Color buttonTextIdle = WHITE;
   static const Color buttonTextDisabled = WHITE;
   static const Color buttonTextHover = WHITE;
+
+  static const Color iconColor = WHITE;
 }

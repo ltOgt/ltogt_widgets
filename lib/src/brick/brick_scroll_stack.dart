@@ -13,6 +13,7 @@ class BrickScrollStack extends StatelessWidget {
     this.crossAxisSize,
     required this.children,
     this.childPadding = EdgeInsets.zero,
+    this.overlay = const [],
     this.leading,
     this.leadingShadow,
     this.trailing,
@@ -43,6 +44,12 @@ class BrickScrollStack extends StatelessWidget {
 
   /// Additional padding to the scroll area around [children].
   final EdgeInsetsGeometry childPadding;
+
+  /// Children to position on an overlaying stack.
+  /// Can be useful in combination with [childPadding].
+  /// E.g. positioning a "leading" widget that casts a shadow and has a non straight boundry.
+  /// (E.g. a circle(/rounded*) at the sides of which the children should be visible when scrolling past)
+  final List<Widget> overlay;
 
   /// Optional Widget that leads [children].
   final Widget? leading;
@@ -209,6 +216,9 @@ class BrickScrollStack extends StatelessWidget {
                             ),
                           ),
                         ),
+
+                      /// ------------------------------------------------- [overlay]
+                      if (overlay.isNotEmpty) ...overlay,
                     ],
                   ),
                 ),

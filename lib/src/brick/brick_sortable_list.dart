@@ -21,6 +21,7 @@ class BrickSortableList<T> extends StatefulWidget {
     this.isBarOnTop = true,
     this.additionalContentPadding = EdgeInsets.zero,
     this.elevation = BrickElevation.RECESSED,
+    this.overlay = const [],
   }) : super(key: key);
 
   /// Items to be build and sorted
@@ -50,6 +51,10 @@ class BrickSortableList<T> extends StatefulWidget {
   ///
   /// Defaults to [BrickElevation.RECESSED]
   final BrickElevation elevation;
+
+  /// List of children that are placed on top of the list and bar in a stack.
+  /// Passed to [BrickScrollStack]
+  final List<Widget> overlay;
 
   @override
   State<BrickSortableList> createState() => _BrickSortableListState();
@@ -157,6 +162,46 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
           children: [
             BrickScrollStack(
               scrollDirection: Axis.vertical,
+
+              /// ------------------------------------------------- [padding] for overlay
+              childPadding: _calculateContentPadding(),
+              overlay: [
+                /// ------------------------------------------------- [_OrderBar]
+                Positioned(
+                  top: widget.isBarOnTop ? 0 : null,
+                  bottom: widget.isBarOnTop ? null : 0,
+                  left: 0,
+                  right: 0,
+                  child: _OrderBar<T>(
+                    key: barKey,
+                    isOrderDesc: isOrderDesc,
+                    sortOption: __sortOption,
+                    sortOptions: widget.sortingOptions,
+                    onChangeOrder: changeOrder,
+                    onToggleDirection: () => changeOrder(__sortOption),
+                    trailing: widget.sortBarTrailing,
+                    trailingClose: widget.sortBarTrailingClose,
+                    childBelow: widget.sortBarChildBelow,
+                  ),
+                ),
+
+                /// ------------------------------------------------- [overlay]
+                ...widget.overlay,
+              ],
+
+              /// ------------------------------------------------- [children] sorted
+              children: [
+                SIZED_BOX_5,
+                // . not using leading/trailing since different sizes
+                ...ListGenerator.seperated(
+                  seperator: SIZED_BOX_2,
+                  list: __sortedChildren,
+                  builder: (ChildData data, int i) => data.build(context),
+                ),
+                SIZED_BOX_5,
+              ],
+
+              /// ------------------------------------------------- [shadows]
               leadingShadow: [
                 BoxShadow(
                   spreadRadius: 2,
@@ -189,34 +234,6 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
                   color: theme.color.shadow,
                 )
               ],
-              childPadding: _calculateContentPadding(),
-              children: [
-                SIZED_BOX_5,
-                // . not using leading/trailing since different sizes
-                ...ListGenerator.seperated(
-                  seperator: SIZED_BOX_2,
-                  list: __sortedChildren,
-                  builder: (ChildData data, int i) => data.build(context),
-                ),
-                SIZED_BOX_5,
-              ],
-            ),
-            Positioned(
-              top: widget.isBarOnTop ? 0 : null,
-              bottom: widget.isBarOnTop ? null : 0,
-              left: 0,
-              right: 0,
-              child: _OrderBar<T>(
-                key: barKey,
-                isOrderDesc: isOrderDesc,
-                sortOption: __sortOption,
-                sortOptions: widget.sortingOptions,
-                onChangeOrder: changeOrder,
-                onToggleDirection: () => changeOrder(__sortOption),
-                trailing: widget.sortBarTrailing,
-                trailingClose: widget.sortBarTrailingClose,
-                childBelow: widget.sortBarChildBelow,
-              ),
             ),
           ],
         ),

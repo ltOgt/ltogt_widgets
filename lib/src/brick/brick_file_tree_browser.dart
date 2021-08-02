@@ -3,7 +3,6 @@ import 'package:ltogt_utils/ltogt_utils.dart';
 import 'package:ltogt_utils_flutter/ltogt_utils_flutter.dart';
 import 'package:ltogt_widgets/ltogt_widgets.dart';
 import 'package:ltogt_widgets/src/const/sizes.dart';
-import 'package:ltogt_widgets/src/util/single_child_scroller.dart';
 
 class BrickFileTreeBrowser extends StatefulWidget {
   static const iconButtonPadding = EdgeInsets.symmetric(horizontal: 4, vertical: 2);
@@ -43,43 +42,48 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        /// File List -----------------------------------
-        Positioned.fill(
-          child: BrickSortableList(
-            sortBarTrailing: [
-              BrickIconButton(
-                isActive: isSearchVisible,
-                onPressed: (_) => toggleSearch(),
-                icon: _searchIcon,
-                size: SMALL_BUTTON_SIZE,
-              ),
-            ],
-            sortBarChildBelow: (false == isSearchVisible)
-                ? null
-                : Container(
-                    // TODO search bar
-                    height: 30,
-                    color: Colors.black,
-                  ),
-            childData: widget.rootDir.entities
-                .map((fileUnderRoot) => ChildData(
-                      data: fileUnderRoot,
-                      build: (c) => FileTreeNodeWidget(
-                        fileTreeEntity: fileUnderRoot,
-                      ),
-                    ))
-                .toList(),
-            sortingOptions: const [
-              SortingOption(name: "Name", compare: BrickFileTreeBrowser.compareName),
-              SortingOption(name: "Change", compare: BrickFileTreeBrowser.compareChange),
-            ],
-            additionalContentPadding: EdgeInsets.only(bottom: widget.filePathBarHeight - 2),
-          ),
+    return BrickSortableList(
+      /// ------------------------------------------------- search button
+      sortBarTrailing: [
+        BrickIconButton(
+          isActive: isSearchVisible,
+          onPressed: (_) => toggleSearch(),
+          icon: _searchIcon,
+          size: SMALL_BUTTON_SIZE,
         ),
+      ],
 
-        /// Sub-Path Info -------------------------------
+      /// ------------------------------------------------- search bar
+      sortBarChildBelow: (false == isSearchVisible)
+          ? null
+          : Container(
+              // TODO search bar
+              height: 30,
+              color: Colors.black,
+            ),
+
+      /// ------------------------------------------------- files to be displayed and sorted for current level
+      childData: widget.rootDir.entities
+          .map((fileUnderRoot) => ChildData(
+                // TODO change to current level
+                data: fileUnderRoot,
+                build: (c) => FileTreeNodeWidget(
+                  fileTreeEntity: fileUnderRoot,
+                ),
+              ))
+          .toList(),
+
+      /// ------------------------------------------------- keys to sort [childData] by
+      sortingOptions: const [
+        SortingOption(name: "Name", compare: BrickFileTreeBrowser.compareName),
+        SortingOption(name: "Change", compare: BrickFileTreeBrowser.compareChange),
+      ],
+
+      /// ------------------------------------------------- [padding] for overlay
+      additionalContentPadding: EdgeInsets.only(bottom: widget.filePathBarHeight - 2),
+
+      /// ------------------------------------------------- file path overlay
+      overlay: [
         Positioned(
           bottom: 0,
           left: 0,

@@ -59,11 +59,14 @@ class _SingleChildScrollerState extends State<SingleChildScroller> {
     super.dispose();
   }
 
+  double get _signForDrag => widget.reverse ? 1 : -1;
+  double get _signForWheel => widget.reverse ? -1 : 1;
+
   void _addDelta(double delta) {
     double minExtend = _controller.position.minScrollExtent;
     double maxExtend = _controller.position.maxScrollExtent;
 
-    double newPos = _controller.offset + _sign * delta;
+    double newPos = _controller.offset + delta;
 
     // dont overscroll
     if (newPos < minExtend) {
@@ -71,6 +74,7 @@ class _SingleChildScrollerState extends State<SingleChildScroller> {
     } else if (newPos > maxExtend) {
       newPos = maxExtend;
     }
+
     _controller.jumpTo(newPos);
   }
 
@@ -82,7 +86,7 @@ class _SingleChildScrollerState extends State<SingleChildScroller> {
 
       if (e.kind == PointerDeviceKind.mouse) {
         // Mouse-Wheel can only be scrolled on Y-Axis, regardless of scroll axis
-        deltaUsed = deltaY;
+        deltaUsed = _signForWheel * deltaY;
         // for some reason, trackpad is also mouse instead of touch
       } else {
         deltaUsed = isVertical ? deltaY : deltaX;
@@ -95,11 +99,9 @@ class _SingleChildScrollerState extends State<SingleChildScroller> {
 
   void _updateDrag(DragUpdateDetails d) {
     if (d.primaryDelta != null) {
-      _addDelta(d.primaryDelta!);
+      _addDelta(_signForDrag * d.primaryDelta!);
     }
   }
-
-  int get _sign => widget.reverse ? 1 : -1;
 
   bool get isHorizontal => widget.scrollDirection == Axis.horizontal;
   bool get isVertical => widget.scrollDirection == Axis.vertical;
@@ -116,6 +118,7 @@ class _SingleChildScrollerState extends State<SingleChildScroller> {
         onVerticalDragUpdate: isVertical ? _updateDrag : null,
         onHorizontalDragUpdate: isHorizontal ? _updateDrag : null,
         child: SingleChildScrollView(
+          primary: false,
           // TODO expose if ever needed
           controller: _controller,
           scrollDirection: widget.scrollDirection,

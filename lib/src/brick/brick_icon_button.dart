@@ -32,35 +32,38 @@ class BrickIconButton extends StatelessWidget {
 
     Color _bgColor = theme.color.resolveButtonBg(isActive: isActive, isDisabled: onPressed == null);
 
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: theme.color.borderDark),
-        boxShadow: false == isElevated
-            ? null
-            : [
-                // TODO replace with theme
-                BoxShadow(
-                  color: theme.color.shadow,
-                  blurRadius: 5,
-                  offset: const Offset(1, 1),
-                ),
-              ],
-      ),
-      child: ClipOval(
-        child: Material(
-          color: _bgColor,
-          child: BrickInkWell(
+    return AspectRatio(
+      aspectRatio: 1,
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: theme.color.borderDark),
+          boxShadow: false == isElevated
+              ? null
+              : [
+                  // TODO replace with theme
+                  BoxShadow(
+                    color: theme.color.shadow,
+                    blurRadius: 5,
+                    offset: const Offset(1, 1),
+                  ),
+                ],
+        ),
+        child: ClipOval(
+          child: Material(
             color: _bgColor,
-            hoverColor: theme.color.buttonHover,
-            onTap: onPressed,
-            child: BendContainer(
-              mode: isActive ? BendMode.CONCAVE : mode,
-              child: SizedBox(
-                width: size,
-                height: size,
-                child: Center(
-                  child: icon,
+            child: BrickInkWell(
+              color: _bgColor,
+              hoverColor: theme.color.buttonHover,
+              onTap: onPressed,
+              child: BendContainer(
+                mode: isActive ? BendMode.CONCAVE : mode,
+                child: SizedBox(
+                  width: size,
+                  height: size,
+                  child: Center(
+                    child: icon,
+                  ),
                 ),
               ),
             ),

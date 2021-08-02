@@ -162,6 +162,7 @@ class _BrickColorThemeDefaults {
   const _BrickColorThemeDefaults._();
 
   static const _white = Color(0xFFFFFFFF);
+  static const _grey5 = Color(0xFF555555);
   static const _grey4 = Color(0xFF444444);
   static const _grey3 = Color(0xFF333333);
   static const _grey2 = Color(0xFF222222);
@@ -187,7 +188,7 @@ class _BrickColorThemeDefaults {
     warning: _red,
     overlayBorderLayer: Color(0x22000000),
     borderDark: _black,
-    borderLight: _white,
+    borderLight: _grey5,
     buttonIdle: _grey3,
     buttonTextIdle: _white,
     buttonDisabled: _black,

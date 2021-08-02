@@ -39,6 +39,7 @@ class BrickIconButton extends StatelessWidget {
         boxShadow: false == isElevated
             ? null
             : [
+                // TODO replace with theme
                 BoxShadow(
                   color: theme.color.shadow,
                   blurRadius: 5,

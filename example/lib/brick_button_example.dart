@@ -8,22 +8,27 @@ void main() {
       theme: ThemeData.dark(),
       home: Scaffold(
         body: Center(
-          child: BrickButton(
-            isElevated: true,
-            text: "Click Me",
-            onPress: () => null,
-            buildMenu: (context, rect) {
-              return Positioned(
-                top: rect.bottomCenter.dy + 20,
-                left: rect.bottomCenter.dx - 200,
-                child: Container(
-                  width: 400,
-                  height: 400,
-                  color: Colors.grey,
-                  child: const Center(child: Text("I'm a menu")),
-                ),
-              );
-            },
+          child: SizedBox(
+            width: 100,
+            height: 100,
+            // TODO this expand to full size all of a suddon
+            child: BrickButton(
+              isElevated: true,
+              text: "Click Me",
+              onPress: () => null,
+              buildMenu: (context, rect) {
+                return Positioned(
+                  top: rect.bottomCenter.dy + 20,
+                  left: rect.bottomCenter.dx - 200,
+                  child: Container(
+                    width: 100,
+                    height: 100,
+                    color: Colors.grey,
+                    child: const Center(child: Text("I'm a menu")),
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),

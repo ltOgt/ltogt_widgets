@@ -8,7 +8,6 @@ import 'package:ltogt_widgets/src/const/sizes.dart';
 import 'package:ltogt_widgets/src/enum/brick_elevation.dart';
 import 'package:ltogt_widgets/src/enum/sort_order.dart';
 import 'package:ltogt_widgets/src/style/brick_theme_provider.dart';
-import 'package:ltogt_widgets/src/util/align_positioned.dart';
 import 'package:ltogt_widgets/src/util/single_child_scroller.dart';
 
 class BrickSortableList<T> extends StatefulWidget {
@@ -252,6 +251,8 @@ class _OrderBar<T> extends StatelessWidget {
   final List<Widget> trailingClose;
   final Widget? childBelow;
 
+  final double scrollAreaHeight = 32;
+
   @override
   Widget build(BuildContext context) {
     final theme = BrickThemeProvider.getTheme(context);
@@ -286,44 +287,120 @@ class _OrderBar<T> extends StatelessWidget {
             childBelow!,
           ],
         ),
-        child: SingleChildScroller(
+        child: BrickScrollStack(
+          crossAxisSize: scrollAreaHeight,
           scrollDirection: Axis.horizontal,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+          leading: Row(
             children: [
               BrickIconButton(
                 size: SMALL_BUTTON_SIZE,
                 onPressed: (_) => onToggleDirection(),
                 icon: isOrderDesc ? _arrowDownIcon : _arrowUpIcon,
               ),
-              ...ListGenerator.seperated(
-                seperator: SIZED_BOX_10,
-                leadingSeperator: true,
-                list: sortOptions,
-                builder: (SortingOption<T> option, int i) {
-                  return BrickButton(
-                    child: Text(option.name),
-                    isActive: sortOption == option,
-                    onPress: () => onChangeOrder(
-                      option,
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  );
-                },
+              SIZED_BOX_10,
+              Container(
+                height: scrollAreaHeight,
+                width: 1,
+                color: theme.color.borderLight,
               ),
-              ...WidgetListGenerator.spaced(
-                uniform: 5,
-                beforeFirst: true,
-                widgets: trailingClose,
-              ),
-              // const Expanded(child: SizedBox()),
-              // ...WidgetListGenerator.spaced(
-              //   uniform: 5,
-              //   widgets: trailing,
-              // ),
             ],
           ),
+          trailing: trailing.isEmpty
+              ? null
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Container(
+                      height: scrollAreaHeight,
+                      width: 1,
+                      color: theme.color.borderLight,
+                    ),
+                    SIZED_BOX_10,
+                    ...WidgetListGenerator.spaced(
+                      uniform: 5,
+                      widgets: trailing,
+                    ),
+                  ],
+                ),
+          leadingShadow: [
+            BoxShadow(
+              blurRadius: 4,
+              spreadRadius: 2,
+              color: theme.color.shadow,
+              offset: const Offset(-2, 0),
+            ),
+          ],
+          trailingShadow: [
+            BoxShadow(
+              blurRadius: 4,
+              spreadRadius: 2,
+              color: theme.color.shadow,
+              offset: const Offset(2, 0),
+            ),
+          ],
+          children: [
+            ...ListGenerator.seperated(
+              seperator: SIZED_BOX_10,
+              leadingSeperator: true,
+              list: sortOptions,
+              builder: (SortingOption<T> option, int i) {
+                return BrickButton(
+                  child: Text(option.name),
+                  isActive: sortOption == option,
+                  onPress: () => onChangeOrder(
+                    option,
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                );
+              },
+            ),
+            ...WidgetListGenerator.spaced(
+              uniform: 5,
+              beforeFirst: true,
+              widgets: trailingClose,
+            ),
+          ],
         ),
+      ),
+    );
+
+    SingleChildScroller(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          BrickIconButton(
+            size: SMALL_BUTTON_SIZE,
+            onPressed: (_) => onToggleDirection(),
+            icon: isOrderDesc ? _arrowDownIcon : _arrowUpIcon,
+          ),
+          ...ListGenerator.seperated(
+            seperator: SIZED_BOX_10,
+            leadingSeperator: true,
+            list: sortOptions,
+            builder: (SortingOption<T> option, int i) {
+              return BrickButton(
+                child: Text(option.name),
+                isActive: sortOption == option,
+                onPress: () => onChangeOrder(
+                  option,
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              );
+            },
+          ),
+          ...WidgetListGenerator.spaced(
+            uniform: 5,
+            beforeFirst: true,
+            widgets: trailingClose,
+          ),
+          const Expanded(child: SizedBox()),
+          ...WidgetListGenerator.spaced(
+            uniform: 5,
+            widgets: trailing,
+          ),
+        ],
       ),
     );
   }

@@ -36,9 +36,9 @@ class BrickFileTreeBrowser extends StatefulWidget {
 class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
   static const _searchIcon = Icon(Icons.search, color: BrickColors.iconColor);
 
-  bool showSearch = false;
+  bool isSearchVisible = false;
   void toggleSearch() => setState(() {
-        showSearch = !showSearch;
+        isSearchVisible = !isSearchVisible;
       });
 
   @override
@@ -50,15 +50,13 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
           child: BrickSortableList(
             sortBarTrailing: [
               BrickIconButton(
-                // TODO add isActive flag to buttons that make green and concave (also assert that no custom mode + color passed in that case)
-                color: showSearch ? BrickColors.buttonActive : BrickColors.buttonIdle,
-                mode: showSearch ? BendMode.CONCAVE : BendMode.CONVEX,
+                isActive: isSearchVisible,
                 onPressed: (_) => toggleSearch(),
                 icon: _searchIcon,
                 size: SMALL_BUTTON_SIZE,
               ),
             ],
-            sortBarChildBelow: (false == showSearch)
+            sortBarChildBelow: (false == isSearchVisible)
                 ? null
                 : Container(
                     // TODO search bar
@@ -87,6 +85,7 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
           left: 0,
           right: 0,
           child: BrickScrollStack(
+            scrollToEnd: true,
             scrollDirection: Axis.horizontal,
             crossAxisSize: widget.filePathBarHeight,
             leading: BrickButton(

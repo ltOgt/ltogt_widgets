@@ -33,8 +33,6 @@ class BrickFileTreeBrowser extends StatefulWidget {
 }
 
 class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
-  static const _searchIcon = Icon(Icons.search, color: BrickColors.iconColor);
-
   bool isSearchVisible = false;
   void toggleSearch() => setState(() {
         isSearchVisible = !isSearchVisible;
@@ -42,6 +40,15 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = BrickThemeProvider.getTheme(context);
+
+    final _iconColor = theme.color.icon;
+    final _shadowColor = theme.color.shadow;
+
+    final _searchIcon = Icon(Icons.search, color: _iconColor);
+    final _homeIcon = Icon(Icons.home, color: _iconColor);
+    final _backIcon = Icon(Icons.arrow_back, color: _iconColor);
+
     return BrickSortableList(
       /// ------------------------------------------------- search button
       sortBarTrailing: [
@@ -101,9 +108,7 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
               padding: BrickFileTreeBrowser.iconButtonPadding,
               child: FittedBox(
                 fit: BoxFit.contain,
-                child: Icon(
-                  Icons.home,
-                ),
+                child: _homeIcon,
               ),
             ),
             trailing: BrickButton(
@@ -115,25 +120,23 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
               padding: BrickFileTreeBrowser.iconButtonPadding,
               child: FittedBox(
                 fit: BoxFit.contain,
-                child: Icon(
-                  Icons.arrow_back,
-                ),
+                child: _backIcon,
               ),
             ),
-            leadingShadow: const [
+            leadingShadow: [
               BoxShadow(
-                color: Colors.black,
+                color: _shadowColor,
                 blurRadius: 5,
                 spreadRadius: 2,
-                offset: Offset(-1, 0),
+                offset: const Offset(-1, 0),
               ),
             ],
-            trailingShadow: const [
+            trailingShadow: [
               BoxShadow(
-                color: Colors.black,
+                color: _shadowColor,
                 blurRadius: 5,
                 spreadRadius: 2,
-                offset: Offset(1, 0),
+                offset: const Offset(1, 0),
               ),
             ],
             leadingCross: const _FilePathGuardRail(),
@@ -143,8 +146,8 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
               builder: (String segment, int i) => BrickButton(
                 // Add border only to right, otherwise always 2 pixel border (1 of each neighbour)
                 // Also enables to have single pixel border along whole guardRail
-                border: const Border(
-                  right: BorderSide(color: BrickColors.borderDark, width: 1),
+                border: Border(
+                  right: BorderSide(color: theme.color.borderDark, width: 1),
                 ),
                 borderRadius: null,
                 child: ConditionalParentWidget(
@@ -176,20 +179,26 @@ class _FilePathGuardRail extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
-  static const border = BorderSide(color: BrickColors.borderDark, width: BrickFileTreeBrowser._borderWidth);
   static const double width = 1;
   static const double borderWidth = 1;
   static const double totalWidth = width + 2 * borderWidth;
 
   @override
   Widget build(BuildContext context) {
+    final theme = BrickThemeProvider.getTheme(context);
+
+    final _border = BorderSide(
+      color: theme.color.borderDark,
+      width: BrickFileTreeBrowser._borderWidth,
+    );
+
     return Container(
       height: totalWidth,
-      decoration: const BoxDecoration(
-        color: BrickColors.buttonIdle,
+      decoration: BoxDecoration(
+        color: theme.color.buttonIdle,
         border: Border(
-          bottom: border,
-          top: border,
+          bottom: _border,
+          top: _border,
         ),
       ),
     );

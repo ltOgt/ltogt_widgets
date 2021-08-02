@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:ltogt_utils_flutter/ltogt_utils_flutter.dart';
 import 'package:ltogt_widgets/ltogt_widgets.dart';
 
 class BendContainer extends StatelessWidget {
   const BendContainer({
     Key? key,
     required this.child,
-    this.borderRadius = BORDER_RADIUS_ALL_10,
+    this.borderRadius,
     this.shape = BoxShape.rectangle,
     this.mode = BendMode.CONVEX,
     this.showBorder = false,
@@ -17,6 +16,8 @@ class BendContainer extends StatelessWidget {
         super(key: key);
 
   /// Only for [shape] `BoxShape.rectangle`
+  /// Defaults to [BORDER_RADIUS_ALL_10] for rectangle
+  /// Use `BorderRadius.zero` to turn off
   final BorderRadius? borderRadius;
   final BoxShape shape;
   final BendMode mode;
@@ -58,19 +59,25 @@ class BendContainer extends StatelessWidget {
     //     ],
     //   );
 
-    final nullRadius = BorderRadius.zero;
+    // null for circle
+    BorderRadius? _radius;
+
+    if (_isRect) {
+      // Needs to be `BorderRadius.zero` for ~null
+      _radius = borderRadius ?? BORDER_RADIUS_ALL_10;
+    }
 
     final content = _isRect //
         ? ClipRRect(
-            borderRadius: borderRadius ?? nullRadius,
+            borderRadius: _radius!,
             child: InnerShadowBox(
               direction: Alignment.topLeft,
               color: _isConcave ? darkColor : lightColor,
-              borderRadius: borderRadius ?? nullRadius,
+              borderRadius: _radius,
               child: InnerShadowBox(
                 direction: Alignment.bottomRight,
                 color: _isConcave ? lightColor : darkColor,
-                borderRadius: borderRadius ?? nullRadius,
+                borderRadius: _radius,
                 child: child,
               ),
             ),
@@ -94,7 +101,8 @@ class BendContainer extends StatelessWidget {
     return DecoratedBox(
       child: content,
       decoration: BoxDecoration(
-        borderRadius: borderRadius,
+        shape: shape,
+        borderRadius: _radius,
         border: Border.all(color: theme.color.borderDark),
       ),
     );

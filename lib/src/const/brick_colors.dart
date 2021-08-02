@@ -23,7 +23,7 @@ class BrickColors {
   static const Color background2 = GREY_2;
 
   static const Color highlightColorLight = Color(0x3DFFFFFF);
-  static const Color highlightColorDark = Color(0x4D000000);
+  static const Color highlightColorDark = Color(0x3D000000);
   static const Color hoverColor = highlightColorLight;
 
   static const Color borderDark = BLACK;

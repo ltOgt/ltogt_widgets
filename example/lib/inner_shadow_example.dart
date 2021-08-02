@@ -24,11 +24,13 @@ void main() {
                   ),
                 ),
                 const BendContainer(
+                  mode: BendMode.CONCAVE,
                   child: SizedBox.square(
                     dimension: 100,
                   ),
                 ),
                 const BendContainer(
+                  mode: BendMode.CONCAVE,
                   shape: BoxShape.circle,
                   child: SizedBox.square(
                     dimension: 100,
@@ -87,7 +89,6 @@ class ConcaveBox extends StatelessWidget {
         borderRadius: BORDER_RADIUS_ALL_10,
         //child: child,
         child: InnerShadowBox(
-          transitionStart: .65,
           direction: Alignment.bottomRight,
           color: BrickColors.highlightColorDark,
           borderRadius: BORDER_RADIUS_ALL_10,

@@ -63,10 +63,12 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
       /// ------------------------------------------------- search bar
       sortBarChildBelow: (false == isSearchVisible)
           ? null
-          : Container(
-              // TODO search bar
-              height: 30,
-              color: Colors.black,
+          : BendContainer(
+              child: BrickTextField(
+                onChange: (s) {},
+                hint: "Filter",
+              ),
+              mode: BendMode.CONCAVE,
             ),
 
       /// ------------------------------------------------- files to be displayed and sorted for current level

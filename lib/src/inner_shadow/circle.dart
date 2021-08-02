@@ -5,11 +5,14 @@ class InnerShadowCircle extends StatelessWidget {
   const InnerShadowCircle({
     Key? key,
     this.adjust = 7,
-    this.transitionStart = 0.7,
+    this.transitionStartFraction, // = 0.7,
+    this.transitionStartOffset = 12,
     required this.child,
     required this.direction,
     required this.color,
-  }) : super(key: key);
+  })  : assert(transitionStartFraction == null || transitionStartOffset == null),
+        assert(transitionStartFraction != null || transitionStartOffset != null),
+        super(key: key);
 
   final Widget child;
 
@@ -25,7 +28,10 @@ class InnerShadowCircle extends StatelessWidget {
   /// 0.0: Start at Center
   /// 0.5: Start half way
   /// 1.0: Start at edge (nothing to see in that case)
-  final double transitionStart;
+  final double? transitionStartFraction;
+
+  /// Width of the shadow from which [transitionStartFraction] is calculated.
+  final double? transitionStartOffset;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +41,8 @@ class InnerShadowCircle extends StatelessWidget {
         adjust: adjust,
         color: color,
         direction: direction,
-        transitionStart: transitionStart,
+        transitionStartFraction: transitionStartFraction,
+        transitionStartOffset: transitionStartOffset,
       ),
     );
   }
@@ -45,14 +52,17 @@ class _CircleInnerShadowPainter extends CustomPainter {
   final double adjust;
   final Color color;
   final Alignment direction;
-  final double transitionStart;
+  final double? transitionStartFraction;
+  final double? transitionStartOffset;
 
   _CircleInnerShadowPainter({
     required this.adjust,
     required this.color,
     required this.direction,
-    required this.transitionStart,
-  });
+    required this.transitionStartFraction,
+    required this.transitionStartOffset,
+  })  : assert(transitionStartFraction == null || transitionStartOffset == null),
+        assert(transitionStartFraction != null || transitionStartOffset != null);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -78,9 +88,11 @@ class _CircleInnerShadowPainter extends CustomPainter {
         ),
       );
 
+    final _transitionStartFraction = transitionStartFraction ?? 1 - (transitionStartOffset! / radius);
+
     final paint = Paint()
       ..shader = RadialGradient(
-        stops: [transitionStart, 1],
+        stops: [_transitionStartFraction, 1],
         colors: [
           Colors.transparent,
           color,

@@ -170,7 +170,7 @@ class _BrickColorThemeDefaults {
   static const _black = Color(0xFF000000);
 
   static const _whiteTransparent = Color(0x3DFFFFFF);
-  static const _blackTransparent = Color(0x4D000000);
+  static const _blackTransparent = Color(0x3D000000);
 
   static const _mutedGreen = Color(0xFF335533);
   static const _red = Color(0xFFFF3333);

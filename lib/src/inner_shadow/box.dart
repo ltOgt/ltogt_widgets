@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 class InnerShadowBox extends StatelessWidget {
@@ -5,7 +7,8 @@ class InnerShadowBox extends StatelessWidget {
     Key? key,
     this.sizeScale = 1.1,
     this.offsetScale = .1,
-    this.transitionStart = 0.75,
+    this.transitionStartFraction, //= 0.7,
+    this.transitionStartOffset = 12,
     required this.child,
     required this.direction,
     required this.color,
@@ -26,7 +29,10 @@ class InnerShadowBox extends StatelessWidget {
   /// 0.0: Start at Center
   /// 0.5: Start half way
   /// 1.0: Start at edge (nothing to see in that case)
-  final double transitionStart;
+  final double? transitionStartFraction;
+
+  /// Width of the shadow from which [transitionStartFraction] is calculated.
+  final double? transitionStartOffset;
 
   final BorderRadius? borderRadius;
 
@@ -39,7 +45,8 @@ class InnerShadowBox extends StatelessWidget {
         offsetScale: offsetScale,
         color: color,
         direction: direction,
-        transitionStart: transitionStart,
+        transitionStartFraction: transitionStartOffset == null ? transitionStartFraction : null,
+        transitionStartOffset: transitionStartOffset,
         borderRadius: borderRadius ??
             const BorderRadius.all(
               Radius.circular(0),
@@ -54,7 +61,9 @@ class _BoxInnerShadowPainter extends CustomPainter {
   final double offsetScale;
   final Color color;
   final Alignment direction;
-  final double transitionStart;
+  final double? transitionStartFraction;
+  final double? transitionStartOffset;
+
   final BorderRadius borderRadius;
 
   _BoxInnerShadowPainter({
@@ -62,9 +71,11 @@ class _BoxInnerShadowPainter extends CustomPainter {
     required this.offsetScale,
     required this.color,
     required this.direction,
-    required this.transitionStart,
+    required this.transitionStartFraction,
+    required this.transitionStartOffset,
     required this.borderRadius,
-  });
+  })  : assert(transitionStartOffset == null || transitionStartFraction == null),
+        assert(transitionStartOffset != null || transitionStartFraction != null);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -74,15 +85,22 @@ class _BoxInnerShadowPainter extends CustomPainter {
 
     // Adjust Offset ------------------------------------
     double adjustPosX = direction.x * size.width * offsetScale;
-    double adjustPosY = direction.x * size.height * offsetScale;
+    double adjustPosY = direction.y * size.height * offsetScale;
 
+    // move only to left/top when those components are negative (e.g. top-left aligned)
+    // for e.g. bottom-right, the width increase will already move it out to bottom-right
     Path rect = Path()
       ..addRRect(
         RRect.fromLTRBAndCorners(
-          0 + adjustPosX,
-          0 + adjustPosY,
-          width + adjustPosX,
-          height + adjustPosY,
+          /// move left aligned shadow to the left (alignment -1)
+          /// this way, with increased width, its border is aligned with the right border of the child
+          ///
+          /// dont move left if the shadow is right aliged (+1)
+          /// here it is already moved out via the with and stays aligned with the left border of the child
+          0 + min(adjustPosX, 0),
+          0 + min(adjustPosY, 0),
+          width + min(adjustPosX, 0),
+          height + min(adjustPosY, 0),
           topLeft: borderRadius.topLeft,
           topRight: borderRadius.topRight,
           bottomLeft: borderRadius.bottomLeft,
@@ -90,21 +108,29 @@ class _BoxInnerShadowPainter extends CustomPainter {
         ),
       );
 
+    // circle starts from center, this starts from one side to the other
+    final _transitionStartX = transitionStartFraction ?? 1 - (transitionStartOffset! / width * 2);
+    final _transitionStartY = transitionStartFraction ?? 1 - (transitionStartOffset! / height * 2);
+
+    print(_transitionStartX);
+    print(_transitionStartY);
+
     final paintX = Paint()
       ..shader = LinearGradient(
         begin: Alignment(-direction.x, 0),
         end: Alignment(direction.x, 0),
-        stops: [transitionStart, 1],
+        stops: [_transitionStartX, 1],
         colors: [
           Colors.transparent,
           color,
         ],
       ).createShader(rect.getBounds());
+
     final paintY = Paint()
       ..shader = LinearGradient(
         begin: Alignment(0, -direction.y),
         end: Alignment(0, direction.y),
-        stops: [transitionStart, 1],
+        stops: [_transitionStartY, 1],
         colors: [
           Colors.transparent,
           color,

@@ -127,9 +127,8 @@ class BrickButton extends StatelessWidget {
     bool _isDisabled = (onPress == null && onPressWithRect == null);
 
     BendMode _mode = isActive ? BendMode.CONCAVE : mode;
-    // TODO ? need buttonActiveDisabled too
-    Color _bgColor =
-        isActive ? theme.color.buttonActive : (_isDisabled ? theme.color.buttonDisabled : theme.color.buttonIdle);
+
+    Color _bgColor = theme.color.resolveButtonBg(isActive: isActive, isDisabled: _isDisabled);
 
     return Container(
       decoration: BoxDecoration(

@@ -8,8 +8,6 @@ class BendContainer extends StatelessWidget {
     this.borderRadius,
     this.shape = BoxShape.rectangle,
     this.mode = BendMode.CONVEX,
-    this.lightColor = BrickColors.highlightColorLight,
-    this.darkColor = BrickColors.highlightColorDark,
   })  : assert(
           borderRadius == null || shape == BoxShape.rectangle,
           "Can not apply borderRadius to Circle",
@@ -20,8 +18,6 @@ class BendContainer extends StatelessWidget {
   final BorderRadius? borderRadius;
   final BoxShape shape;
   final BendMode mode;
-  final Color lightColor;
-  final Color darkColor;
   final Widget child;
 
   bool get _isRect => shape == BoxShape.rectangle;
@@ -29,6 +25,11 @@ class BendContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = BrickThemeProvider.getTheme(context);
+
+    final darkColor = theme.color.bendDark;
+    final lightColor = theme.color.bendLight;
+
     return _isRect //
         ? ClipRRect(
             borderRadius: borderRadius ?? BORDER_RADIUS_ALL_10,

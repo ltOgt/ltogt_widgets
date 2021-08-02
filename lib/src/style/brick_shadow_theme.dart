@@ -16,7 +16,7 @@ class BrickShadowTheme {
     required this.elevated,
   });
 
-  static const BrickShadowTheme defaultTheme = _BrickShadowThemeDefaults();
+  static const BrickShadowTheme defaultTheme = _BrickShadowThemeDefaults.theme;
 
   BrickShadowTheme copyWith({
     List<BoxShadow>? elevated,
@@ -27,25 +27,17 @@ class BrickShadowTheme {
   }
 }
 
-class _BrickShadowThemeDefaults implements BrickShadowTheme {
-  const _BrickShadowThemeDefaults();
+class _BrickShadowThemeDefaults {
+  const _BrickShadowThemeDefaults._();
 
-  @override
-  final List<BoxShadow> elevated = const [
-    BoxShadow(
-      color: Color(0xFF000000),
-      offset: Offset(2, 2),
-      spreadRadius: 0,
-      blurRadius: 4,
-    ),
-  ];
-
-  @override
-  BrickShadowTheme copyWith({
-    List<BoxShadow>? elevated,
-  }) {
-    return BrickShadowTheme(
-      elevated: elevated ?? this.elevated,
-    );
-  }
+  static const BrickShadowTheme theme = BrickShadowTheme(
+    elevated: [
+      BoxShadow(
+        color: Color(0xFF000000),
+        offset: Offset(2, 2),
+        spreadRadius: 0,
+        blurRadius: 4,
+      ),
+    ],
+  );
 }

@@ -50,10 +50,10 @@ class BrickColorTheme {
 
   // ============================================================== Border
   /// Border Color (Dark)
-  final Color borderDark;
+  final Color borderDark; // TODO ? rename border primary
 
   /// Border Color (Light)
-  final Color borderLight;
+  final Color borderLight; // TODO ? rename border secondary
 
   // ============================================================== Button
   /// Button that can be clicked.
@@ -73,7 +73,7 @@ class BrickColorTheme {
   final Color buttonActive;
   final Color buttonTextActive;
 
-  BrickColorTheme({
+  const BrickColorTheme({
     required this.text,
     required this.icon,
     required this.background,
@@ -97,7 +97,7 @@ class BrickColorTheme {
     required this.buttonTextActive,
   });
 
-  static const BrickColorTheme defaultTheme = _BrickColorThemeDefaults();
+  static const BrickColorTheme defaultTheme = _BrickColorThemeDefaults.theme;
 
   BrickColorTheme copyWith({
     Color? text,
@@ -146,10 +146,20 @@ class BrickColorTheme {
       buttonTextActive: buttonTextActive ?? this.buttonTextActive,
     );
   }
+
+  // TODO ? need buttonActiveDisabled too
+  Color resolveButtonBg({
+    required bool isActive,
+    required bool isDisabled,
+  }) {
+    return isActive ? buttonActive : (isDisabled ? buttonDisabled : buttonIdle);
+  }
 }
 
-class _BrickColorThemeDefaults implements BrickColorTheme {
-  const _BrickColorThemeDefaults();
+// TODO maybe implementation not the right approach for defaults
+// ? instead factory
+class _BrickColorThemeDefaults {
+  const _BrickColorThemeDefaults._();
 
   static const _white = Color(0xFFFFFFFF);
   static const _grey4 = Color(0xFF444444);
@@ -164,100 +174,27 @@ class _BrickColorThemeDefaults implements BrickColorTheme {
   static const _mutedGreen = Color(0xFF335533);
   static const _red = Color(0xFFFF3333);
 
-  @override
-  final Color text = _white;
-  @override
-  final Color icon = _white;
-
-  @override
-  final Color background = _grey4;
-  @override
-  final Color background2 = _grey2;
-  @override
-  final Color background3 = _grey1;
-
-  @override
-  final Color shadow = _black;
-  @override
-  final Color bendLight = _whiteTransparent;
-  @override
-  final Color bendDark = _blackTransparent;
-
-  @override
-  final Color hover = _whiteTransparent;
-  @override
-  final Color warning = _red;
-  @override
-  final Color overlayBorderLayer = const Color(0x22000000);
-
-  @override
-  final Color borderDark = _black;
-  @override
-  final Color borderLight = _white;
-
-  @override
-  final Color buttonIdle = _grey3;
-  @override
-  final Color buttonTextIdle = _white;
-  @override
-  final Color buttonDisabled = _black;
-  @override
-  final Color buttonTextDisabled = _white;
-  @override
-  final Color buttonHover = _whiteTransparent;
-  @override
-  final Color buttonTextHover = _white;
-  @override
-  final Color buttonActive = _mutedGreen;
-  @override
-  final Color buttonTextActive = _white;
-
-  @override
-  BrickColorTheme copyWith({
-    Color? text,
-    Color? icon,
-    Color? background,
-    Color? background2,
-    Color? background3,
-    Color? shadow,
-    Color? bendLight,
-    Color? bendDark,
-    Color? hover,
-    Color? warning,
-    Color? overlayBorderLayer,
-    Color? borderDark,
-    Color? borderLight,
-    Color? buttonIdle,
-    Color? buttonTextIdle,
-    Color? buttonDisabled,
-    Color? buttonTextDisabled,
-    Color? buttonHover,
-    Color? buttonTextHover,
-    Color? buttonActive,
-    Color? buttonTextActive,
-  }) {
-    return BrickColorTheme(
-      text: text ?? this.text,
-      icon: icon ?? this.icon,
-      background: background ?? this.background,
-      background2: background2 ?? this.background2,
-      background3: background3 ?? this.background3,
-      shadow: shadow ?? this.shadow,
-      bendLight: bendLight ?? this.bendLight,
-      bendDark: bendDark ?? this.bendDark,
-      hover: hover ?? this.hover,
-      warning: warning ?? this.warning,
-      overlayBorderLayer: overlayBorderLayer ?? this.overlayBorderLayer,
-      borderDark: borderDark ?? this.borderDark,
-      borderLight: borderLight ?? this.borderLight,
-      buttonIdle: buttonIdle ?? this.buttonIdle,
-      buttonTextIdle: buttonTextIdle ?? this.buttonTextIdle,
-      buttonDisabled: buttonDisabled ?? this.buttonDisabled,
-      buttonTextDisabled: buttonTextDisabled ?? this.buttonTextDisabled,
-      buttonHover: buttonHover ?? this.buttonHover,
-      buttonTextHover: buttonTextHover ?? this.buttonTextHover,
-      buttonActive: buttonActive ?? this.buttonActive,
-      buttonTextActive: buttonTextActive ?? this.buttonTextActive,
-    );
-  }
+  static const BrickColorTheme theme = BrickColorTheme(
+    text: _white,
+    icon: _white,
+    background: _grey4,
+    background2: _grey2,
+    background3: _grey1,
+    shadow: _black,
+    bendLight: _whiteTransparent,
+    bendDark: _blackTransparent,
+    hover: _whiteTransparent,
+    warning: _red,
+    overlayBorderLayer: Color(0x22000000),
+    borderDark: _black,
+    borderLight: _white,
+    buttonIdle: _grey3,
+    buttonTextIdle: _white,
+    buttonDisabled: _black,
+    buttonTextDisabled: _white,
+    buttonHover: _whiteTransparent,
+    buttonTextHover: _white,
+    buttonActive: _mutedGreen,
+    buttonTextActive: _white,
+  );
 }

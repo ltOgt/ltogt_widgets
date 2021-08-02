@@ -11,7 +11,7 @@ class BrickRadiusTheme {
     required this.large,
   });
 
-  static const BrickRadiusTheme defaultTheme = _BrickRadiusThemeDefaults();
+  static const BrickRadiusTheme defaultTheme = _BrickRadiusThemeDefaults.theme;
 
   BrickRadiusTheme copyWith({
     BorderRadius? small,
@@ -26,26 +26,12 @@ class BrickRadiusTheme {
   }
 }
 
-class _BrickRadiusThemeDefaults implements BrickRadiusTheme {
-  const _BrickRadiusThemeDefaults();
+class _BrickRadiusThemeDefaults {
+  const _BrickRadiusThemeDefaults._();
 
-  @override
-  final BorderRadius small = const BorderRadius.all(Radius.circular(5.0));
-  @override
-  final BorderRadius medium = const BorderRadius.all(Radius.circular(10.0));
-  @override
-  final BorderRadius large = const BorderRadius.all(Radius.circular(15.0));
-
-  @override
-  BrickRadiusTheme copyWith({
-    BorderRadius? small,
-    BorderRadius? medium,
-    BorderRadius? large,
-  }) {
-    return BrickRadiusTheme(
-      small: small ?? this.small,
-      medium: medium ?? this.medium,
-      large: large ?? this.large,
-    );
-  }
+  static const BrickRadiusTheme theme = BrickRadiusTheme(
+    small: BorderRadius.all(Radius.circular(5.0)),
+    medium: BorderRadius.all(Radius.circular(10.0)),
+    large: BorderRadius.all(Radius.circular(15.0)),
+  );
 }

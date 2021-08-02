@@ -11,6 +11,7 @@ class BrickTextField extends StatefulWidget {
     this.textColor,
     this.fontSize,
     this.editable = true,
+    this.showLine = true,
   }) : super(key: key);
 
   final Function(String text) onChange;
@@ -20,6 +21,7 @@ class BrickTextField extends StatefulWidget {
   final Color? textColor;
   final double? fontSize;
   final bool editable;
+  final bool showLine;
 
   @override
   State<BrickTextField> createState() => _BrickTextFieldState();
@@ -52,6 +54,7 @@ class _BrickTextFieldState extends State<BrickTextField> {
       fontSize: widget.fontSize,
       maxLines: widget.maxLines,
       textColor: widget.textColor,
+      showLine: widget.showLine,
     );
   }
 }

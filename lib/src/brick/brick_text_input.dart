@@ -12,6 +12,8 @@ class BrickTextInput extends StatelessWidget {
     this.textColor,
     this.fontSize,
     this.editable = true,
+    this.showLine = true,
+    this.contentPadding = const EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
   }) : super(key: key);
 
   final TextEditingController controller;
@@ -21,6 +23,8 @@ class BrickTextInput extends StatelessWidget {
   final Color? textColor;
   final double? fontSize;
   final bool editable;
+  final bool showLine;
+  final EdgeInsets contentPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +41,12 @@ class BrickTextInput extends StatelessWidget {
           ),
           decoration: InputDecoration(
             hintText: hint,
+            border: showLine ? null : InputBorder.none,
+            focusedBorder: showLine ? null : InputBorder.none,
+            enabledBorder: showLine ? null : InputBorder.none,
+            errorBorder: showLine ? null : InputBorder.none,
+            disabledBorder: showLine ? null : InputBorder.none,
+            contentPadding: contentPadding,
           ),
           maxLines: maxLines,
           controller: controller,

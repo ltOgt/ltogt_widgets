@@ -64,8 +64,11 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
       /// ------------------------------------------------- search bar
       sortBarChildBelow: (false == isSearchVisible)
           ? null
-          : RecessContainer(
+          : BendContainer(
+              mode: BendMode.CONCAVE,
+              showBorder: true,
               child: BrickTextField(
+                showLine: false,
                 onChange: (s) {},
                 hint: "Filter",
               ),

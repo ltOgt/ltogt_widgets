@@ -112,9 +112,6 @@ class _BoxInnerShadowPainter extends CustomPainter {
     final _transitionStartX = transitionStartFraction ?? 1 - (transitionStartOffset! / width * 2);
     final _transitionStartY = transitionStartFraction ?? 1 - (transitionStartOffset! / height * 2);
 
-    print(_transitionStartX);
-    print(_transitionStartY);
-
     final paintX = Paint()
       ..shader = LinearGradient(
         begin: Alignment(-direction.x, 0),

@@ -30,27 +30,29 @@ class BendContainer extends StatelessWidget {
     final darkColor = theme.color.bendDark;
     final lightColor = theme.color.bendLight;
 
-    // return Stack(
-    //   children: [
-    //     Container(
-    //       child: child,
-    //       decoration: BoxDecoration(
-    //         border: Border.all(color: Colors.blueAccent),
-    //       ),
-    //     ),
-    //     InnerShadowBox(
-    //       direction: Alignment.topLeft,
-    //       color: _isConcave ? darkColor : lightColor,
-    //       borderRadius: borderRadius ?? BORDER_RADIUS_ALL_10,
-    //       child: InnerShadowBox(
-    //         direction: Alignment.bottomRight,
-    //         color: _isConcave ? lightColor : darkColor,
-    //         borderRadius: borderRadius ?? BORDER_RADIUS_ALL_10,
-    //         child: child,
-    //       ),
-    //     )
-    //   ],
-    // );
+    if (false)
+      return Stack(
+        children: [
+          Container(
+            child: child,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.blueAccent),
+              borderRadius: borderRadius ?? BORDER_RADIUS_ALL_10,
+            ),
+          ),
+          InnerShadowBox(
+            direction: Alignment.topLeft,
+            color: _isConcave ? darkColor : lightColor,
+            borderRadius: borderRadius ?? BORDER_RADIUS_ALL_10,
+            child: InnerShadowBox(
+              direction: Alignment.bottomRight,
+              color: _isConcave ? lightColor : darkColor,
+              borderRadius: borderRadius ?? BORDER_RADIUS_ALL_10,
+              child: child,
+            ),
+          )
+        ],
+      );
 
     return _isRect //
         ? ClipRRect(

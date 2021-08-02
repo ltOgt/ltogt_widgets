@@ -5,9 +5,7 @@ import 'package:flutter/material.dart';
 class InnerShadowBox extends StatelessWidget {
   const InnerShadowBox({
     Key? key,
-    this.sizeScale = 1.1,
-    this.offsetScale = .1,
-    this.transitionStartFraction, //= 0.7,
+    this.sizeDelta = 10,
     this.transitionStartOffset = 12,
     required this.child,
     required this.direction,
@@ -17,8 +15,8 @@ class InnerShadowBox extends StatelessWidget {
 
   final Widget child;
 
-  final double sizeScale;
-  final double offsetScale;
+  /// How much larger the shadow shape should be
+  final double sizeDelta;
 
   /// Color of the shadow
   final Color color;
@@ -26,13 +24,8 @@ class InnerShadowBox extends StatelessWidget {
   /// Where to anchor the inner shadow
   final Alignment direction;
 
-  /// 0.0: Start at Center
-  /// 0.5: Start half way
-  /// 1.0: Start at edge (nothing to see in that case)
-  final double? transitionStartFraction;
-
   /// Width of the shadow from which [transitionStartFraction] is calculated.
-  final double? transitionStartOffset;
+  final double transitionStartOffset;
 
   final BorderRadius? borderRadius;
 
@@ -41,11 +34,9 @@ class InnerShadowBox extends StatelessWidget {
     return CustomPaint(
       child: child,
       foregroundPainter: _BoxInnerShadowPainter(
-        sizeScale: sizeScale,
-        offsetScale: offsetScale,
+        sizeDelta: sizeDelta,
         color: color,
         direction: direction,
-        transitionStartFraction: transitionStartOffset == null ? transitionStartFraction : null,
         transitionStartOffset: transitionStartOffset,
         borderRadius: borderRadius ??
             const BorderRadius.all(
@@ -57,35 +48,30 @@ class InnerShadowBox extends StatelessWidget {
 }
 
 class _BoxInnerShadowPainter extends CustomPainter {
-  final double sizeScale;
-  final double offsetScale;
+  final double sizeDelta;
   final Color color;
   final Alignment direction;
-  final double? transitionStartFraction;
-  final double? transitionStartOffset;
+  final double transitionStartOffset;
 
   final BorderRadius borderRadius;
 
   _BoxInnerShadowPainter({
-    required this.sizeScale,
-    required this.offsetScale,
+    required this.sizeDelta,
     required this.color,
     required this.direction,
-    required this.transitionStartFraction,
     required this.transitionStartOffset,
     required this.borderRadius,
-  })  : assert(transitionStartOffset == null || transitionStartFraction == null),
-        assert(transitionStartOffset != null || transitionStartFraction != null);
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Adjust Size ------------------------------------
-    double width = size.width * sizeScale;
-    double height = size.height * sizeScale;
-
     // Adjust Offset ------------------------------------
-    double adjustPosX = direction.x * size.width * offsetScale;
-    double adjustPosY = direction.y * size.height * offsetScale;
+    double adjustPosXForSize = direction.x * (sizeDelta);
+    double adjustPosYForSize = direction.y * (sizeDelta);
+
+    // Adjust Size ------------------------------------
+    double width = size.width + sizeDelta;
+    double height = size.height + sizeDelta;
 
     // move only to left/top when those components are negative (e.g. top-left aligned)
     // for e.g. bottom-right, the width increase will already move it out to bottom-right
@@ -97,10 +83,10 @@ class _BoxInnerShadowPainter extends CustomPainter {
           ///
           /// dont move left if the shadow is right aliged (+1)
           /// here it is already moved out via the with and stays aligned with the left border of the child
-          0 + min(adjustPosX, 0),
-          0 + min(adjustPosY, 0),
-          width + min(adjustPosX, 0),
-          height + min(adjustPosY, 0),
+          0 + min(adjustPosXForSize, 0),
+          0 + min(adjustPosYForSize, 0),
+          width + min(adjustPosXForSize, 0),
+          height + min(adjustPosYForSize, 0),
           topLeft: borderRadius.topLeft,
           topRight: borderRadius.topRight,
           bottomLeft: borderRadius.bottomLeft,
@@ -108,9 +94,9 @@ class _BoxInnerShadowPainter extends CustomPainter {
         ),
       );
 
-    // circle starts from center, this starts from one side to the other
-    final _transitionStartX = transitionStartFraction ?? 1 - (transitionStartOffset! / width * 2);
-    final _transitionStartY = transitionStartFraction ?? 1 - (transitionStartOffset! / height * 2);
+    /// Calculate the fractional stops from fixed width
+    final _transitionStartX = 1 - (transitionStartOffset / width * 2);
+    final _transitionStartY = 1 - (transitionStartOffset / height * 2);
 
     final paintX = Paint()
       ..shader = LinearGradient(

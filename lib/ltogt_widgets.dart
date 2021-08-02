@@ -22,7 +22,8 @@ export 'src/const/padding.dart';
 export 'src/const/sized_box.dart';
 export 'src/const/text_style.dart';
 
-export 'src/inner_shadow/box.dart';
-export 'src/inner_shadow/circle.dart';
-export 'src/inner_shadow/bend_mode.dart';
-export 'src/inner_shadow/bend_container.dart';
+export 'src/inner_shadow/bend/box.dart';
+export 'src/inner_shadow/bend/circle.dart';
+export 'src/inner_shadow/bend/bend_mode.dart';
+export 'src/inner_shadow/bend/bend_container.dart';
+export 'src/inner_shadow/recess_container.dart';

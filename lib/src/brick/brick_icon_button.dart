@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart' hide ErrorWidget;
 import 'package:ltogt_widgets/ltogt_widgets.dart';
-import 'package:ltogt_widgets/src/inner_shadow/bend_mode.dart';
+import 'package:ltogt_widgets/src/inner_shadow/bend/bend_mode.dart';
 
 class BrickIconButton extends StatelessWidget {
   const BrickIconButton({

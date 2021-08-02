@@ -3,6 +3,7 @@ import 'package:ltogt_utils/ltogt_utils.dart';
 import 'package:ltogt_utils_flutter/ltogt_utils_flutter.dart';
 import 'package:ltogt_widgets/ltogt_widgets.dart';
 import 'package:ltogt_widgets/src/const/sizes.dart';
+import 'package:ltogt_widgets/src/inner_shadow/recess_container.dart';
 
 class BrickFileTreeBrowser extends StatefulWidget {
   static const iconButtonPadding = EdgeInsets.symmetric(horizontal: 4, vertical: 2);
@@ -63,12 +64,11 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
       /// ------------------------------------------------- search bar
       sortBarChildBelow: (false == isSearchVisible)
           ? null
-          : BendContainer(
+          : RecessContainer(
               child: BrickTextField(
                 onChange: (s) {},
                 hint: "Filter",
               ),
-              mode: BendMode.CONCAVE,
             ),
 
       /// ------------------------------------------------- files to be displayed and sorted for current level

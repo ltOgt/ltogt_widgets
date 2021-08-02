@@ -55,7 +55,7 @@ class BrickIconButton extends StatelessWidget {
             hoverColor: theme.color.buttonHover,
             onTap: onPressed,
             child: BendContainer(
-              mode: mode,
+              mode: isActive ? BendMode.CONCAVE : mode,
               child: SizedBox(
                 width: size,
                 height: size,

@@ -36,28 +36,28 @@ class BendContainer extends StatelessWidget {
 
     /// Debugging
     // if (false)
-    //   return Stack(
-    //     children: [
-    //       Container(
-    //         child: child,
-    //         decoration: BoxDecoration(
-    //           border: Border.all(color: Colors.blueAccent),
-    //           borderRadius: borderRadius ?? BORDER_RADIUS_ALL_10,
-    //         ),
-    //       ),
-    //       InnerShadowBox(
-    //         direction: Alignment.topLeft,
-    //         color: _isConcave ? darkColor : lightColor,
+    // return Stack(
+    //   children: [
+    //     Container(
+    //       child: child,
+    //       decoration: BoxDecoration(
+    //         border: Border.all(color: Colors.blueAccent),
     //         borderRadius: borderRadius ?? BORDER_RADIUS_ALL_10,
-    //         child: InnerShadowBox(
-    //           direction: Alignment.bottomRight,
-    //           color: _isConcave ? lightColor : darkColor,
-    //           borderRadius: borderRadius ?? BORDER_RADIUS_ALL_10,
-    //           child: child,
-    //         ),
-    //       )
-    //     ],
-    //   );
+    //       ),
+    //     ),
+    //     InnerShadowBox(
+    //       direction: Alignment.topLeft,
+    //       color: _isConcave ? darkColor : lightColor,
+    //       borderRadius: borderRadius ?? BORDER_RADIUS_ALL_10,
+    //       child: InnerShadowBox(
+    //         direction: Alignment.bottomRight,
+    //         color: _isConcave ? lightColor : darkColor,
+    //         borderRadius: borderRadius ?? BORDER_RADIUS_ALL_10,
+    //         child: child,
+    //       ),
+    //     )
+    //   ],
+    // );
 
     // null for circle
     BorderRadius? _radius;

@@ -51,21 +51,21 @@ class _TodoWidgetState extends State<TodoWidget> {
         shadow: existing.shadow,
         radius: existing.radius,
       ),
-      child: BrickSortableList(
+      child: BrickInteractiveList(
         childData: todos
-            .map((e) => ChildData<TodoObject>(
+            .map((e) => ChildDataBIL<TodoObject>(
                   data: e,
                   build: (c) => e.build(c, update),
                 ))
             .toList(),
-        sortingOptions: const [
-          SortingOption<TodoObject>(name: "TASK", compare: TodoObject.compareTask),
-          SortingOption<TodoObject>(name: "USER", compare: TodoObject.compareUser),
-          SortingOption<TodoObject>(name: "CREATE", compare: TodoObject.compareCreate),
-          SortingOption<TodoObject>(name: "CHANGE", compare: TodoObject.compareChange),
-          SortingOption<TodoObject>(name: "DONE", compare: TodoObject.compareDone),
+        childDataParameters: const [
+          ParameterBIL<TodoObject>(name: "TASK", sort: TodoObject.compareTask),
+          ParameterBIL<TodoObject>(name: "USER", sort: TodoObject.compareUser),
+          ParameterBIL<TodoObject>(name: "CREATE", sort: TodoObject.compareCreate),
+          ParameterBIL<TodoObject>(name: "CHANGE", sort: TodoObject.compareChange),
+          ParameterBIL<TodoObject>(name: "DONE", sort: TodoObject.compareDone),
         ],
-        sortBarTrailing: [
+        topBarTrailing: [
           const BrickIconButton(
             icon: Icon(Icons.refresh),
           ),

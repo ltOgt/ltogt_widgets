@@ -1,23 +1,27 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide ErrorWidget;
 import 'package:ltogt_utils/ltogt_utils.dart';
 import 'package:ltogt_utils_flutter/ltogt_utils_flutter.dart';
 
 import 'package:ltogt_widgets/ltogt_widgets.dart';
+import 'package:ltogt_widgets/src/brick/interactive_list/bil_child_data.dart';
+import 'package:ltogt_widgets/src/brick/interactive_list/bil_parameter.dart';
 import 'package:ltogt_widgets/src/const/sizes.dart';
 import 'package:ltogt_widgets/src/enum/brick_elevation.dart';
 import 'package:ltogt_widgets/src/enum/sort_order.dart';
 import 'package:ltogt_widgets/src/style/brick_theme_provider.dart';
 import 'package:ltogt_widgets/src/util/single_child_scroller.dart';
 
-class BrickSortableList<T> extends StatefulWidget {
-  const BrickSortableList({
+class BrickInteractiveList<T> extends StatefulWidget {
+  const BrickInteractiveList({
     Key? key,
     required this.childData,
-    required this.sortingOptions,
-    this.sortBarTrailing = const [],
-    this.sortBarTrailingClose = const [],
-    this.sortBarChildBelow,
+    required this.childDataParameters,
+    this.topBarTrailing = const [],
+    this.topBarTrailingClose = const [],
+    this.topBarChildBelow,
     this.isBarOnTop = true,
     this.additionalContentPadding = EdgeInsets.zero,
     this.elevation = BrickElevation.RECESSED,
@@ -25,19 +29,24 @@ class BrickSortableList<T> extends StatefulWidget {
   }) : super(key: key);
 
   /// Items to be build and sorted
-  final List<ChildData<T>> childData;
+  final List<ChildDataBIL<T>> childData;
 
-  /// Sorting Options to sort [childData] by
-  final List<SortingOption<T>> sortingOptions;
+  /// Accessors for each parameter of [T] that should be
+  /// - searchable
+  /// - sortable
+  final List<ParameterBIL<T>> childDataParameters;
 
   /// Widgets to add to the bar at the end
-  final List<Widget> sortBarTrailing;
+  // TODO maybe remove this
+  final List<Widget> topBarTrailing;
 
-  /// Widgets to add to the bar, right after [sortingOptions]
-  final List<Widget> sortBarTrailingClose;
+  /// Widgets to add to the bar, right after [childDataParameters]
+  // TODO maybe remove this
+  final List<Widget> topBarTrailingClose;
 
   /// Widget to add directly below sortBar
-  final Widget? sortBarChildBelow;
+  // TODO maybe remove this
+  final Widget? topBarChildBelow;
 
   /// If true, the bar is rendered at the start of the list.
   /// Otherwise it is rendered at the bottom
@@ -57,17 +66,14 @@ class BrickSortableList<T> extends StatefulWidget {
   final List<Widget> overlay;
 
   @override
-  State<BrickSortableList> createState() => _BrickSortableListState();
+  State<BrickInteractiveList> createState() => _BrickInteractiveListState();
 }
 
-class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
-  /// ============================================================== State
-  late SortingOption<T> __sortOption = widget.sortingOptions.first; // TODO handle empty list
-
-  SortOrder __sortOrder = SortOrder.DECR;
-  bool get isOrderDesc => __sortOrder == SortOrder.DECR;
-
-  late List<ChildData<T>> __sortedChildren = widget.childData;
+class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
+  /// Contains a subset of [widget.childData] that may be
+  /// - re-sorted based on parameter ordering
+  /// - filtered based on parameter search
+  late List<ChildDataBIL<T>> sManipulatedChildren = widget.childData;
 
   /// ============================================================== Lifecyle-Functions
 
@@ -75,60 +81,77 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
   void initState() {
     super.initState();
     // intial ordering to sync list and sort key
-    _order(__sortOption);
+    _order(sSortOption);
   }
 
   @override
-  void didUpdateWidget(covariant BrickSortableList<T> oldWidget) {
+  void didUpdateWidget(covariant BrickInteractiveList<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    /// If childData has changed, reset subset and re-apply manipulations
     if (false == listEquals(oldWidget.childData, widget.childData)) {
-      __sortedChildren = widget.childData;
-      _order(__sortOption);
+      /// Reset
+      sManipulatedChildren = widget.childData;
+
+      // Re-Apply
+      _order(sSortOption);
     }
-    if (oldWidget.sortBarChildBelow != widget.sortBarChildBelow) {
+
+    /// If size of bar might have changed, recalculate child padding
+    bool _barChildChanged = oldWidget.topBarChildBelow != widget.topBarChildBelow;
+    bool _additionalPaddingChanged = oldWidget.additionalContentPadding != widget.additionalContentPadding;
+    if (_barChildChanged || _additionalPaddingChanged) {
       calculateBarPaddingInNextFrame();
     }
   }
 
-  /// ============================================================== State-Functions
+  /// ============================================================== SORTING
+  late ParameterBIL<T> sSortOption = widget.childDataParameters.first; // TODO handle empty list
 
-  void _order(SortingOption<T> sortOption) {
-    __sortedChildren.sort((ChildData<T> p1, ChildData<T> p2) => sortOption._compare<T>(p1.data, p2.data));
+  SortOrder sSortOrder = SortOrder.DECR;
+  bool get isOrderDesc => sSortOrder == SortOrder.DECR;
 
-    if (__sortOrder == SortOrder.INCR) {
-      __sortedChildren = __sortedChildren.reversed.toList();
+  void _order(ParameterBIL<T> sortOption) {
+    sManipulatedChildren
+        .sort((ChildDataBIL<T> p1, ChildDataBIL<T> p2) => sortOption.compareInternal<T>(p1.data, p2.data));
+
+    if (sSortOrder == SortOrder.INCR) {
+      sManipulatedChildren = sManipulatedChildren.reversed.toList();
     }
   }
 
-  void changeOrder(SortingOption<T> sortOption) {
-    if (sortOption == __sortOption) {
-      __sortOrder = isOrderDesc ? SortOrder.INCR : SortOrder.DECR;
-      __sortedChildren = __sortedChildren.reversed.toList();
+  void changeOrder(ParameterBIL<T> sortOption) {
+    if (sortOption == sSortOption) {
+      sSortOrder = isOrderDesc ? SortOrder.INCR : SortOrder.DECR;
+      sManipulatedChildren = sManipulatedChildren.reversed.toList();
     } else {
       _order(sortOption);
     }
 
     // . also triggers update of __projects and __sortOrder
     setState(() {
-      __sortOption = sortOption;
+      sSortOption = sortOption;
     });
   }
 
-  final GlobalKey barKey = GlobalKey();
+  /// ============================================================== SEARCHING
 
-  double? barPadding;
+  /// ============================================================== SIZING
+  final GlobalKey barKey = GlobalKey();
+  double? sBarPadding;
+
   // Need to wait one frame for the bar to be sized
   void calculateBarPaddingInNextFrame() {
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
       setState(() {
-        barPadding = RenderHelper.getSize(globalKey: barKey)?.height;
+        sBarPadding = RenderHelper.getSize(globalKey: barKey)?.height;
       });
     });
   }
 
   EdgeInsetsGeometry _calculateContentPadding() {
     // : Add padding with same height as bar after first frame (for first frame approx. with 60)
-    final _barPadding = (barPadding ?? 60.0) + 1;
+    final _barPadding = (sBarPadding ?? 60.0) + 1;
 
     final basePadding = EdgeInsets.only(
       top: widget.isBarOnTop ? _barPadding : 0,
@@ -144,7 +167,7 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
   /// ============================================================== build
   @override
   Widget build(BuildContext context) {
-    if (barPadding == null) {
+    if (sBarPadding == null) {
       calculateBarPaddingInNextFrame();
     }
 
@@ -172,16 +195,16 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
                   bottom: widget.isBarOnTop ? null : 0,
                   left: 0,
                   right: 0,
-                  child: _OrderBar<T>(
+                  child: _TopBar<T>(
                     key: barKey,
                     isOrderDesc: isOrderDesc,
-                    sortOption: __sortOption,
-                    sortOptions: widget.sortingOptions,
+                    sortOption: sSortOption,
+                    sortOptions: widget.childDataParameters,
                     onChangeOrder: changeOrder,
-                    onToggleDirection: () => changeOrder(__sortOption),
-                    trailing: widget.sortBarTrailing,
-                    trailingClose: widget.sortBarTrailingClose,
-                    childBelow: widget.sortBarChildBelow,
+                    onToggleDirection: () => changeOrder(sSortOption),
+                    trailing: widget.topBarTrailing,
+                    trailingClose: widget.topBarTrailingClose,
+                    childBelow: widget.topBarChildBelow,
                   ),
                 ),
 
@@ -195,8 +218,8 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
                 // . not using leading/trailing since different sizes
                 ...ListGenerator.seperated(
                   seperator: SIZED_BOX_2,
-                  list: __sortedChildren,
-                  builder: (ChildData data, int i) => data.build(context),
+                  list: sManipulatedChildren,
+                  builder: (ChildDataBIL data, int i) => data.build(context),
                 ),
                 SIZED_BOX_5,
               ],
@@ -246,8 +269,8 @@ class _BrickSortableListState<T> extends State<BrickSortableList<T>> {
 //
 //
 //
-class _OrderBar<T> extends StatelessWidget {
-  const _OrderBar({
+class _TopBar<T> extends StatelessWidget {
+  const _TopBar({
     Key? key,
     required this.onChangeOrder,
     required this.onToggleDirection,
@@ -259,10 +282,10 @@ class _OrderBar<T> extends StatelessWidget {
     this.childBelow,
   }) : super(key: key);
 
-  final void Function(SortingOption<T> sortKey) onChangeOrder;
+  final void Function(ParameterBIL<T> sortKey) onChangeOrder;
   final void Function() onToggleDirection;
-  final SortingOption<T> sortOption;
-  final List<SortingOption<T>> sortOptions;
+  final ParameterBIL<T> sortOption;
+  final List<ParameterBIL<T>> sortOptions;
   final bool isOrderDesc;
   final List<Widget> trailing;
   final List<Widget> trailingClose;
@@ -361,7 +384,7 @@ class _OrderBar<T> extends StatelessWidget {
               seperator: SIZED_BOX_10,
               leadingSeperator: true,
               list: sortOptions,
-              builder: (SortingOption<T> option, int i) {
+              builder: (ParameterBIL<T> option, int i) {
                 return BrickButton(
                   child: Text(option.name),
                   isActive: sortOption == option,
@@ -381,78 +404,5 @@ class _OrderBar<T> extends StatelessWidget {
         ),
       ),
     );
-
-    SingleChildScroller(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          BrickIconButton(
-            size: SMALL_BUTTON_SIZE,
-            onPressed: (_) => onToggleDirection(),
-            icon: isOrderDesc ? _arrowDownIcon : _arrowUpIcon,
-          ),
-          ...ListGenerator.seperated(
-            seperator: SIZED_BOX_10,
-            leadingSeperator: true,
-            list: sortOptions,
-            builder: (SortingOption<T> option, int i) {
-              return BrickButton(
-                child: Text(option.name),
-                isActive: sortOption == option,
-                onPress: () => onChangeOrder(
-                  option,
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              );
-            },
-          ),
-          ...WidgetListGenerator.spaced(
-            uniform: 5,
-            beforeFirst: true,
-            widgets: trailingClose,
-          ),
-          const Expanded(child: SizedBox()),
-          ...WidgetListGenerator.spaced(
-            uniform: 5,
-            widgets: trailing,
-          ),
-        ],
-      ),
-    );
   }
-}
-
-//
-//
-//
-//
-class SortingOption<T> {
-  /// Name of the sorting option
-  final String name;
-
-  /// Ordering function
-  final int Function(T e1, T e2) compare;
-
-  /// Annoyingly needed internally because of contravariance of parameters
-  int _compare<X>(X e1, X e2) => compare(e1 as T, e2 as T);
-
-  const SortingOption({
-    required this.name,
-    required this.compare,
-  });
-}
-
-//
-//
-//
-//
-class ChildData<T> {
-  final T data;
-  final Widget Function(BuildContext context) build;
-
-  const ChildData({
-    required this.data,
-    required this.build,
-  });
 }

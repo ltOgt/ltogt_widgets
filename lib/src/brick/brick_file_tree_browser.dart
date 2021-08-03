@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:ltogt_utils/ltogt_utils.dart';
 import 'package:ltogt_utils_flutter/ltogt_utils_flutter.dart';
 import 'package:ltogt_widgets/ltogt_widgets.dart';
+import 'package:ltogt_widgets/src/brick/interactive_list/bil_child_data.dart';
 import 'package:ltogt_widgets/src/const/sizes.dart';
-import 'package:ltogt_widgets/src/inner_shadow/recess_container.dart';
 
 class BrickFileTreeBrowser extends StatefulWidget {
   static const iconButtonPadding = EdgeInsets.symmetric(horizontal: 4, vertical: 2);
@@ -34,10 +34,67 @@ class BrickFileTreeBrowser extends StatefulWidget {
 }
 
 class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
+  // ======================================================================= SEARCH <<<<
+  /// The actual String typed by the user
+  String? searchInput;
+
+  /// Whether the search bar is visible or not
   bool isSearchVisible = false;
-  void toggleSearch() => setState(() {
-        isSearchVisible = !isSearchVisible;
+
+  /// Whether the search should be interpreted as regex
+  /// Only effective when [isSearchVisible]
+  bool isSearchRegexMode = false;
+
+  void onToggleSearchRegexMode() {
+    setState(() {
+      isSearchRegexMode = !isSearchRegexMode;
+      // resort
+      _applyFilterToFiles();
+    });
+  }
+
+  /// Hide or show the search bar and reset related state
+  void onPressSearchIcon() => setState(
+        () {
+          isSearchVisible = !isSearchVisible;
+
+          /// clear stored search
+          searchInput = null;
+
+          /// reset filtered list
+          currentDirContentFiltered = currentDirContent;
+        },
+      );
+
+  /// Update search string and filter list
+  void onTypeSearch(String s) => setState(() {
+        /// save typed string
+        searchInput = s;
+
+        _applyFilterToFiles();
       });
+
+  /// does not call setState, needs to be done by caller
+  void _applyFilterToFiles() {
+    if (searchInput == null) return;
+
+    if (isSearchRegexMode) {
+      // Try catch for regex, since it might not be valid in the current state
+      try {
+        final regex = RegExp(searchInput!);
+
+        // TODO maybe even highlight matching parts
+        currentDirContentFiltered = currentDirContent.where((element) => regex.hasMatch(element.name)).toList();
+      } on FormatException catch (_) {}
+    } else {
+      currentDirContentFiltered = currentDirContent.where((element) => element.name.contains(searchInput!)).toList();
+    }
+  }
+  // ======================================================================= SEARCH >>>>
+
+  // TODO make changeable
+  late List<FileTreeEntity> currentDirContent = widget.rootDir.entities;
+  late List<FileTreeEntity> currentDirContentFiltered = currentDirContent;
 
   @override
   Widget build(BuildContext context) {
@@ -50,45 +107,57 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
     final _homeIcon = Icon(Icons.home, color: _iconColor);
     final _backIcon = Icon(Icons.arrow_back, color: _iconColor);
 
-    return BrickSortableList(
+    return BrickInteractiveList(
       /// ------------------------------------------------- search button
-      sortBarTrailing: [
+      topBarTrailing: [
         BrickIconButton(
           isActive: isSearchVisible,
-          onPressed: (_) => toggleSearch(),
+          onPressed: (_) => onPressSearchIcon(),
           icon: _searchIcon,
           size: SMALL_BUTTON_SIZE,
         ),
       ],
 
       /// ------------------------------------------------- search bar
-      sortBarChildBelow: (false == isSearchVisible)
+      topBarChildBelow: (false == isSearchVisible)
           ? null
           : BendContainer(
               mode: BendMode.CONCAVE,
               showBorder: true,
-              child: BrickTextField(
-                showLine: false,
-                onChange: (s) {},
-                hint: "Filter",
+              child: Stack(
+                alignment: AlignmentDirectional.topEnd,
+                children: [
+                  BrickTextField(
+                    showLine: false,
+                    maxLines: 1,
+                    onChange: onTypeSearch,
+                    hint: "Filter",
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: _RegexIndicator(
+                      isRegex: isSearchRegexMode,
+                      onPress: onToggleSearchRegexMode,
+                    ),
+                  )
+                ],
               ),
             ),
 
       /// ------------------------------------------------- files to be displayed and sorted for current level
-      childData: widget.rootDir.entities
-          .map((fileUnderRoot) => ChildData(
-                // TODO change to current level
-                data: fileUnderRoot,
+      childData: currentDirContentFiltered
+          .map((fileInCurrentDir) => ChildDataBIL(
+                data: fileInCurrentDir,
                 build: (c) => FileTreeNodeWidget(
-                  fileTreeEntity: fileUnderRoot,
+                  fileTreeEntity: fileInCurrentDir,
                 ),
               ))
           .toList(),
 
       /// ------------------------------------------------- keys to sort [childData] by
-      sortingOptions: const [
-        SortingOption(name: "Name", compare: BrickFileTreeBrowser.compareName),
-        SortingOption(name: "Change", compare: BrickFileTreeBrowser.compareChange),
+      childDataParameters: const [
+        ParameterBIL(name: "Name", sort: BrickFileTreeBrowser.compareName),
+        ParameterBIL(name: "Change", sort: BrickFileTreeBrowser.compareChange),
       ],
 
       /// ------------------------------------------------- [padding] for overlay
@@ -175,6 +244,38 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _RegexIndicator extends StatelessWidget {
+  const _RegexIndicator({
+    Key? key,
+    required this.isRegex,
+    required this.onPress,
+  }) : super(key: key);
+
+  final bool isRegex;
+  final Function() onPress;
+
+  static const _transparentRed = Color(0x55FF3333);
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isRegex ? _transparentRed : Colors.transparent;
+
+    return Container(
+      margin: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(1),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white),
+        borderRadius: BORDER_RADIUS_ALL_5,
+      ),
+      child: BrickInkWell(
+        color: color,
+        onTap: (_) => onPress(),
+        child: const Text(" .* "),
+      ),
     );
   }
 }

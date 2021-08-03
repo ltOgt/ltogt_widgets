@@ -7,11 +7,14 @@ class ParameterBIL<T> {
   /// -------------------------------------------------------------------------------- [Sorting]
   /// Ordering function
   // TODO make optional if parameter should not be sorted
-  final int Function(T d1, T d2) sort;
+  final int Function(T d1, T d2)? sort;
 
   /// Annoyingly needed internally because of contravariance of parameters
   /// Make sure [sort] is not null before calling this method
-  int compareInternal<X>(X d1, X d2) => sort(d1 as T, d2 as T);
+  /// E.g. use [isSortDefined]
+  int compareInternal<X>(X d1, X d2) => sort!.call(d1 as T, d2 as T);
+
+  bool get isSortDefined => sort != null;
 
   /// -------------------------------------------------------------------------------- [Searching]
   /// If provided, the associated [ChildData] can be found via this [ParameterBIL]
@@ -23,7 +26,10 @@ class ParameterBIL<T> {
 
   /// Annoyingly needed internally because of contravariance of parameters.
   /// Make sure that [searchStringExtractor] is not null befor calling this method.
-  String? searchStringExtractorInternal<X>(X d) => searchStringExtractor!.call(d as T);
+  /// E.g. use [isSearchDefined]
+  String searchStringExtractorInternal<X>(X d) => searchStringExtractor!.call(d as T);
+
+  bool get isSearchDefined => searchStringExtractor != null;
 
   const ParameterBIL({
     required this.name,

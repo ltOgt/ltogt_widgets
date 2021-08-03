@@ -28,6 +28,7 @@ class BrickFileTreeBrowser extends StatefulWidget {
       f1.name.toLowerCase().compareTo(f2.name.toLowerCase());
   static int compareChange(FileTreeEntity f1, FileTreeEntity f2) =>
       (f1.lastChange == null) ? -1 : (f2.lastChange == null ? 1 : f1.lastChange!.compareTo(f2.lastChange!));
+  static String extractNameForSearch(FileTreeEntity e) => e.name;
 
   @override
   State<BrickFileTreeBrowser> createState() => _BrickFileTreeBrowserState();
@@ -103,46 +104,12 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
     final _iconColor = theme.color.icon;
     final _shadowColor = theme.color.shadow;
 
-    final _searchIcon = Icon(Icons.search, color: _iconColor);
     final _homeIcon = Icon(Icons.home, color: _iconColor);
     final _backIcon = Icon(Icons.arrow_back, color: _iconColor);
 
     return BrickInteractiveList(
-      /// ------------------------------------------------- search button
-      topBarTrailing: [
-        BrickIconButton(
-          isActive: isSearchVisible,
-          onPressed: (_) => onPressSearchIcon(),
-          icon: _searchIcon,
-          size: SMALL_BUTTON_SIZE,
-        ),
-      ],
-
-      /// ------------------------------------------------- search bar
-      topBarChildBelow: (false == isSearchVisible)
-          ? null
-          : BendContainer(
-              mode: BendMode.CONCAVE,
-              showBorder: true,
-              child: Stack(
-                alignment: AlignmentDirectional.topEnd,
-                children: [
-                  BrickTextField(
-                    showLine: false,
-                    maxLines: 1,
-                    onChange: onTypeSearch,
-                    hint: "Filter",
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: _RegexIndicator(
-                      isRegex: isSearchRegexMode,
-                      onPress: onToggleSearchRegexMode,
-                    ),
-                  )
-                ],
-              ),
-            ),
+      isSearchEnabled: true,
+      isSortEnabled: true,
 
       /// ------------------------------------------------- files to be displayed and sorted for current level
       childData: currentDirContentFiltered
@@ -156,8 +123,15 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
 
       /// ------------------------------------------------- keys to sort [childData] by
       childDataParameters: const [
-        ParameterBIL(name: "Name", sort: BrickFileTreeBrowser.compareName),
-        ParameterBIL(name: "Change", sort: BrickFileTreeBrowser.compareChange),
+        ParameterBIL(
+          name: "Name",
+          sort: BrickFileTreeBrowser.compareName,
+          searchStringExtractor: BrickFileTreeBrowser.extractNameForSearch,
+        ),
+        ParameterBIL(
+          name: "Change",
+          sort: BrickFileTreeBrowser.compareChange,
+        ),
       ],
 
       /// ------------------------------------------------- [padding] for overlay
@@ -244,38 +218,6 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _RegexIndicator extends StatelessWidget {
-  const _RegexIndicator({
-    Key? key,
-    required this.isRegex,
-    required this.onPress,
-  }) : super(key: key);
-
-  final bool isRegex;
-  final Function() onPress;
-
-  static const _transparentRed = Color(0x55FF3333);
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isRegex ? _transparentRed : Colors.transparent;
-
-    return Container(
-      margin: const EdgeInsets.all(8),
-      padding: const EdgeInsets.all(1),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.white),
-        borderRadius: BORDER_RADIUS_ALL_5,
-      ),
-      child: BrickInkWell(
-        color: color,
-        onTap: (_) => onPress(),
-        child: const Text(" .* "),
-      ),
     );
   }
 }

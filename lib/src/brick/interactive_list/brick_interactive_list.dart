@@ -1,5 +1,7 @@
 // ignore_for_file: non_constant_identifier_names
 
+import 'dart:collection';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide ErrorWidget;
 import 'package:ltogt_utils/ltogt_utils.dart';
@@ -12,16 +14,17 @@ import 'package:ltogt_widgets/src/const/sizes.dart';
 import 'package:ltogt_widgets/src/enum/brick_elevation.dart';
 import 'package:ltogt_widgets/src/enum/sort_order.dart';
 import 'package:ltogt_widgets/src/style/brick_theme_provider.dart';
-import 'package:ltogt_widgets/src/util/single_child_scroller.dart';
 
 class BrickInteractiveList<T> extends StatefulWidget {
   const BrickInteractiveList({
     Key? key,
     required this.childData,
     required this.childDataParameters,
+    this.isSearchEnabled = true,
+    this.isSortEnabled = true,
     this.topBarTrailing = const [],
     this.topBarTrailingClose = const [],
-    this.topBarChildBelow,
+    this.topBarChildrenBelow,
     this.isBarOnTop = true,
     this.additionalContentPadding = EdgeInsets.zero,
     this.elevation = BrickElevation.RECESSED,
@@ -36,6 +39,12 @@ class BrickInteractiveList<T> extends StatefulWidget {
   /// - sortable
   final List<ParameterBIL<T>> childDataParameters;
 
+  /// Whether search is enabled
+  final bool isSearchEnabled;
+
+  /// Whether sorting is enabled
+  final bool isSortEnabled;
+
   /// Widgets to add to the bar at the end
   // TODO maybe remove this
   final List<Widget> topBarTrailing;
@@ -46,7 +55,7 @@ class BrickInteractiveList<T> extends StatefulWidget {
 
   /// Widget to add directly below sortBar
   // TODO maybe remove this
-  final Widget? topBarChildBelow;
+  final List<Widget>? topBarChildrenBelow;
 
   /// If true, the bar is rendered at the start of the list.
   /// Otherwise it is rendered at the bottom
@@ -70,18 +79,29 @@ class BrickInteractiveList<T> extends StatefulWidget {
 }
 
 class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
+  /// ============================================================== Child Data
   /// Contains a subset of [widget.childData] that may be
   /// - re-sorted based on parameter ordering
   /// - filtered based on parameter search
-  late List<ChildDataBIL<T>> sManipulatedChildren = widget.childData;
+  late LinkedHashSet<ChildDataBIL<T>> sManipulatedChildren;
+
+  // does not call setState
+  void _resetManipulatedChildren() {
+    sManipulatedChildren = LinkedHashSet.from(widget.childData);
+  }
 
   /// ============================================================== Lifecyle-Functions
 
   @override
   void initState() {
     super.initState();
+
+    _checkIfSearchEnabled();
+    _checkIfSortEnabled();
+
+    _resetManipulatedChildren();
     // intial ordering to sync list and sort key
-    _order(sSortOption);
+    _order(sSortParam);
   }
 
   @override
@@ -91,50 +111,207 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
     /// If childData has changed, reset subset and re-apply manipulations
     if (false == listEquals(oldWidget.childData, widget.childData)) {
       /// Reset
-      sManipulatedChildren = widget.childData;
+      _resetManipulatedChildren();
 
       // Re-Apply
-      _order(sSortOption);
+      _applyFilterToChildData();
+      _order(sSortParam);
     }
 
-    /// If size of bar might have changed, recalculate child padding
-    bool _barChildChanged = oldWidget.topBarChildBelow != widget.topBarChildBelow;
+    /// If size of bar might have changed, recalculate child padding // TODO confirm list equals works as expected
+    bool _barChildChanged = oldWidget.topBarChildrenBelow != widget.topBarChildrenBelow;
     bool _additionalPaddingChanged = oldWidget.additionalContentPadding != widget.additionalContentPadding;
     if (_barChildChanged || _additionalPaddingChanged) {
       calculateBarPaddingInNextFrame();
     }
+
+    /// If [widget.isSearchEnabled] or [widget.childDataParameters] changed, re-check if search is active
+    if (oldWidget.isSearchEnabled != widget.isSearchEnabled ||
+        widget.childDataParameters != oldWidget.childDataParameters) {
+      _checkIfSearchEnabled();
+    }
+
+    /// If [widget.isSortEnabled] or [widget.childDataParameters] changed, re-check if sort is active
+    if (oldWidget.isSortEnabled != widget.isSortEnabled ||
+        widget.childDataParameters != oldWidget.childDataParameters) {
+      _checkIfSortEnabled();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    sTheme = BrickThemeProvider.getTheme(context);
   }
 
   /// ============================================================== SORTING
-  late ParameterBIL<T> sSortOption = widget.childDataParameters.first; // TODO handle empty list
+  late bool sIsSortEnabled;
+
+  // does not call setState
+  // check if parent enabled search and iff so if search is defined on params
+  void _checkIfSortEnabled() {
+    bool _existsParamThatDefinesSort =
+        widget.childDataParameters.fold(false, (bool acc, ParameterBIL e) => acc || e.isSortDefined);
+
+    sIsSortEnabled = widget.isSearchEnabled && _existsParamThatDefinesSort;
+    assert(
+      false == sIsSortEnabled || _existsParamThatDefinesSort,
+      "Search enabled, but no search defined via parameters",
+    );
+  }
+
+  late ParameterBIL<T> sSortParam = widget.childDataParameters.first; // TODO handle empty list
 
   SortOrder sSortOrder = SortOrder.DECR;
   bool get isOrderDesc => sSortOrder == SortOrder.DECR;
 
+  /// does not call setState, needs to be done by caller
   void _order(ParameterBIL<T> sortOption) {
-    sManipulatedChildren
-        .sort((ChildDataBIL<T> p1, ChildDataBIL<T> p2) => sortOption.compareInternal<T>(p1.data, p2.data));
+    var _currentChildData = sManipulatedChildren.toList();
+    _currentChildData.sort((ChildDataBIL<T> p1, ChildDataBIL<T> p2) => sortOption.compareInternal<T>(p1.data, p2.data));
 
     if (sSortOrder == SortOrder.INCR) {
-      sManipulatedChildren = sManipulatedChildren.reversed.toList();
+      _currentChildData = _currentChildData.reversed.toList();
     }
+
+    sManipulatedChildren = LinkedHashSet.from(_currentChildData);
   }
 
-  void changeOrder(ParameterBIL<T> sortOption) {
-    if (sortOption == sSortOption) {
+  void changeOrder(ParameterBIL<T> sortParam) {
+    if (sortParam == sSortParam) {
+      // invert ordering if sortParameter is already active
       sSortOrder = isOrderDesc ? SortOrder.INCR : SortOrder.DECR;
-      sManipulatedChildren = sManipulatedChildren.reversed.toList();
     } else {
-      _order(sortOption);
+      // switch to new sortParameter
+      sSortParam = sortParam;
     }
-
-    // . also triggers update of __projects and __sortOrder
-    setState(() {
-      sSortOption = sortOption;
-    });
+    _order(sortParam);
+    setState(() {});
   }
 
   /// ============================================================== SEARCHING
+  late bool sIsSearchEnabled;
+
+  // does not call setState
+  // check if parent enabled search and iff so if search is defined on params
+  void _checkIfSearchEnabled() {
+    bool _existsParamThatDefinesSearch = widget.childDataParameters.fold(
+      false,
+      (acc, e) => acc || e.isSearchDefined,
+    );
+
+    sIsSearchEnabled = widget.isSearchEnabled && _existsParamThatDefinesSearch;
+    assert(
+      false == widget.isSearchEnabled || _existsParamThatDefinesSearch,
+      "Search enabled, but no search defined via parameters",
+    );
+  }
+
+  /// Whether the search bar is visible or not
+  bool sIsSearchBarVisible = false;
+
+  /// Whether the search should be interpreted as regex
+  /// Only effective when [sIsSearchBarVisible]
+  bool sIsSearchRegexMode = false;
+
+  /// The actual String typed by the user
+  String? sSearchInput;
+
+  void onToggleSearchRegexMode() {
+    setState(() {
+      sIsSearchRegexMode = !sIsSearchRegexMode;
+      // re-sort with new regex mode
+      _applyFilterToChildData();
+    });
+  }
+
+  /// does not call setState, needs to be done by caller
+  void _resetChildDataSearchManipulation() {
+    _resetManipulatedChildren();
+    // TODO once optional, check if sorting enabled before calling
+    _order(sSortParam);
+  }
+
+  /// Hide or show the search bar and reset related state
+  void onPressSearchIcon() {
+    calculateBarPaddingInNextFrame();
+    setState(
+      () {
+        sIsSearchBarVisible = !sIsSearchBarVisible;
+
+        /// clear stored search
+        sSearchInput = null;
+
+        /// reset filtered list
+        _resetChildDataSearchManipulation();
+      },
+    );
+  }
+
+  /// Update search string and filter list
+  void onTypeSearch(String s) => setState(() {
+        /// save typed string
+        sSearchInput = s;
+
+        _applyFilterToChildData();
+
+        // TODO once optional, check if sorting enabled before calling
+        _order(sSortParam);
+      });
+
+  /// does not call setState, needs to be done by caller
+  void _applyFilterToChildData() {
+    if (false == StringHelper.isFilled(sSearchInput)) {
+      _resetChildDataSearchManipulation();
+      return;
+    }
+
+    // TODO change to StringOffset? with null acting as false
+    bool Function(String searchable)? matchSearchable;
+
+    if (sIsSearchRegexMode) {
+      // Try catch for regex, since it might not be valid in the current state
+      try {
+        final regex = RegExp(sSearchInput!);
+        matchSearchable = (String searchable) => regex.hasMatch(searchable);
+      } on FormatException catch (_) {
+        // matcher stays null -> dont apply anything
+      }
+    } else {
+      //matchSearchable = (String searchable) => searchable.contains(sSearchInput!);
+      matchSearchable = (String searchable) {
+        return searchable.contains(sSearchInput!);
+      };
+    }
+
+    // If regex did not fail to compile, match children based on the active parameters
+    // TODO keep track of all active parameters; maybe need mutli param for sorting as well; maybe need custom ordering of parameters to prioritize combinations
+    if (matchSearchable != null) {
+      // Clear to re-populate
+      sManipulatedChildren = LinkedHashSet();
+
+      for (final param in widget.childDataParameters) {
+        // only for parameters that define search string extractor
+        if (false == param.isSearchDefined) {
+          continue;
+        }
+
+        // shorthand for extractor + contravariance workaround
+        searchableFrom(T t) => param.searchStringExtractorInternal<T>(t);
+
+        // add matching childData
+        for (final childDatum in widget.childData) {
+          // TODO keep track of matches instead of just filtering
+
+          // get searchable data from parameter and use to search against
+          if (matchSearchable(searchableFrom(childDatum.data))) {
+            sManipulatedChildren.add(childDatum);
+          }
+        }
+      }
+    }
+  }
 
   /// ============================================================== SIZING
   final GlobalKey barKey = GlobalKey();
@@ -164,6 +341,40 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
     return basePadding.add(widget.additionalContentPadding);
   }
 
+  /// ============================================================== theme
+  late BrickTheme sTheme;
+
+  /// ============================================================== widgets
+  Widget buildSearchButton() => BrickIconButton(
+        isActive: sIsSearchBarVisible,
+        onPressed: (_) => onPressSearchIcon(),
+        icon: Icon(Icons.search, color: sTheme.color.icon),
+        size: SMALL_BUTTON_SIZE,
+      );
+
+  Widget buildSearchBar() => BendContainer(
+        mode: BendMode.CONCAVE,
+        showBorder: true,
+        child: Stack(
+          alignment: AlignmentDirectional.topEnd,
+          children: [
+            BrickTextField(
+              showLine: false,
+              maxLines: 1,
+              onChange: onTypeSearch,
+              hint: "Filter",
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: _RegexIndicator(
+                isRegex: sIsSearchRegexMode,
+                onPress: onToggleSearchRegexMode,
+              ),
+            )
+          ],
+        ),
+      );
+
   /// ============================================================== build
   @override
   Widget build(BuildContext context) {
@@ -172,6 +383,19 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
     }
 
     final theme = BrickThemeProvider.getTheme(context);
+
+    // TODO might need to rework layout of bar and what is exposed
+    var _topBarTrailing = [
+      if (sIsSearchEnabled) buildSearchButton(),
+      ...widget.topBarTrailing,
+    ];
+
+    // TODO might need to rework layout of bar and what is exposed
+    List<Widget>? _topBarBelow = [
+      if (sIsSearchBarVisible) buildSearchBar(),
+      if (null != widget.topBarChildrenBelow) ...widget.topBarChildrenBelow!,
+    ];
+    if (_topBarBelow.isEmpty) _topBarBelow = null;
 
     return Container(
       decoration: BoxDecoration(
@@ -195,16 +419,16 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
                   bottom: widget.isBarOnTop ? null : 0,
                   left: 0,
                   right: 0,
-                  child: _TopBar<T>(
+                  child: _InteractionBar<T>(
                     key: barKey,
                     isOrderDesc: isOrderDesc,
-                    sortOption: sSortOption,
+                    sortOption: sSortParam,
                     sortOptions: widget.childDataParameters,
                     onChangeOrder: changeOrder,
-                    onToggleDirection: () => changeOrder(sSortOption),
-                    trailing: widget.topBarTrailing,
+                    onToggleDirection: () => changeOrder(sSortParam),
+                    trailing: _topBarTrailing,
                     trailingClose: widget.topBarTrailingClose,
-                    childBelow: widget.topBarChildBelow,
+                    childrenBelow: _topBarBelow,
                   ),
                 ),
 
@@ -218,7 +442,7 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
                 // . not using leading/trailing since different sizes
                 ...ListGenerator.seperated(
                   seperator: SIZED_BOX_2,
-                  list: sManipulatedChildren,
+                  list: sManipulatedChildren.toList(),
                   builder: (ChildDataBIL data, int i) => data.build(context),
                 ),
                 SIZED_BOX_5,
@@ -269,8 +493,8 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
 //
 //
 //
-class _TopBar<T> extends StatelessWidget {
-  const _TopBar({
+class _InteractionBar<T> extends StatelessWidget {
+  const _InteractionBar({
     Key? key,
     required this.onChangeOrder,
     required this.onToggleDirection,
@@ -279,7 +503,7 @@ class _TopBar<T> extends StatelessWidget {
     required this.isOrderDesc,
     required this.trailing,
     required this.trailingClose,
-    this.childBelow,
+    this.childrenBelow,
   }) : super(key: key);
 
   final void Function(ParameterBIL<T> sortKey) onChangeOrder;
@@ -289,7 +513,7 @@ class _TopBar<T> extends StatelessWidget {
   final bool isOrderDesc;
   final List<Widget> trailing;
   final List<Widget> trailingClose;
-  final Widget? childBelow;
+  final List<Widget>? childrenBelow;
 
   final double scrollAreaHeight = 32;
 
@@ -316,7 +540,7 @@ class _TopBar<T> extends StatelessWidget {
       ),
       padding: PADDING_ALL_10,
       child: ConditionalParentWidget(
-        condition: childBelow != null,
+        condition: childrenBelow != null,
         parentBuilder: (child) => Column(
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -324,7 +548,7 @@ class _TopBar<T> extends StatelessWidget {
           children: [
             child,
             SIZED_BOX_10,
-            childBelow!,
+            ...childrenBelow!,
           ],
         ),
         child: BrickScrollStack(
@@ -402,6 +626,38 @@ class _TopBar<T> extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _RegexIndicator extends StatelessWidget {
+  const _RegexIndicator({
+    Key? key,
+    required this.isRegex,
+    required this.onPress,
+  }) : super(key: key);
+
+  final bool isRegex;
+  final Function() onPress;
+
+  static const _transparentRed = Color(0x55FF3333);
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isRegex ? _transparentRed : Colors.transparent;
+
+    return Container(
+      margin: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(1),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white),
+        borderRadius: BORDER_RADIUS_ALL_5,
+      ),
+      child: BrickInkWell(
+        color: color,
+        onTap: (_) => onPress(),
+        child: const Text(" .* "),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:ltogt_utils/ltogt_utils.dart';
 import 'package:ltogt_utils_flutter/ltogt_utils_flutter.dart';
 import 'package:ltogt_widgets/ltogt_widgets.dart';
 import 'package:ltogt_widgets/src/brick/interactive_list/bil_child_data.dart';
+import 'package:ltogt_widgets/src/brick/interactive_list/bil_search_matches.dart';
 import 'package:ltogt_widgets/src/const/sizes.dart';
 
 class BrickFileTreeBrowser extends StatefulWidget {
@@ -24,75 +25,28 @@ class BrickFileTreeBrowser extends StatefulWidget {
   final FileTreePath path;
   final int pathIndex;
 
+  @override
+  State<BrickFileTreeBrowser> createState() => _BrickFileTreeBrowserState();
+
+  // ================================================================== INTERACTIVE LIST CONSTS
   static int compareName(FileTreeEntity f1, FileTreeEntity f2) =>
       f1.name.toLowerCase().compareTo(f2.name.toLowerCase());
   static int compareChange(FileTreeEntity f1, FileTreeEntity f2) =>
       (f1.lastChange == null) ? -1 : (f2.lastChange == null ? 1 : f1.lastChange!.compareTo(f2.lastChange!));
   static String extractNameForSearch(FileTreeEntity e) => e.name;
 
-  @override
-  State<BrickFileTreeBrowser> createState() => _BrickFileTreeBrowserState();
+  static const namePARAM = ParameterBIL(
+    name: "Name",
+    sort: compareName,
+    searchStringExtractor: extractNameForSearch,
+  );
+  static const changePARAM = ParameterBIL(
+    name: "Change",
+    sort: BrickFileTreeBrowser.compareChange,
+  );
 }
 
 class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
-  // ======================================================================= SEARCH <<<<
-  /// The actual String typed by the user
-  String? searchInput;
-
-  /// Whether the search bar is visible or not
-  bool isSearchVisible = false;
-
-  /// Whether the search should be interpreted as regex
-  /// Only effective when [isSearchVisible]
-  bool isSearchRegexMode = false;
-
-  void onToggleSearchRegexMode() {
-    setState(() {
-      isSearchRegexMode = !isSearchRegexMode;
-      // resort
-      _applyFilterToFiles();
-    });
-  }
-
-  /// Hide or show the search bar and reset related state
-  void onPressSearchIcon() => setState(
-        () {
-          isSearchVisible = !isSearchVisible;
-
-          /// clear stored search
-          searchInput = null;
-
-          /// reset filtered list
-          currentDirContentFiltered = currentDirContent;
-        },
-      );
-
-  /// Update search string and filter list
-  void onTypeSearch(String s) => setState(() {
-        /// save typed string
-        searchInput = s;
-
-        _applyFilterToFiles();
-      });
-
-  /// does not call setState, needs to be done by caller
-  void _applyFilterToFiles() {
-    if (searchInput == null) return;
-
-    if (isSearchRegexMode) {
-      // Try catch for regex, since it might not be valid in the current state
-      try {
-        final regex = RegExp(searchInput!);
-
-        // TODO maybe even highlight matching parts
-        currentDirContentFiltered = currentDirContent.where((element) => regex.hasMatch(element.name)).toList();
-      } on FormatException catch (_) {}
-    } else {
-      currentDirContentFiltered = currentDirContent.where((element) => element.name.contains(searchInput!)).toList();
-    }
-  }
-  // ======================================================================= SEARCH >>>>
-
   // TODO make changeable
   late List<FileTreeEntity> currentDirContent = widget.rootDir.entities;
   late List<FileTreeEntity> currentDirContentFiltered = currentDirContent;
@@ -115,23 +69,17 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
       childData: currentDirContentFiltered
           .map((fileInCurrentDir) => ChildDataBIL(
                 data: fileInCurrentDir,
-                build: (c) => FileTreeNodeWidget(
+                build: (c, matches) => FileTreeNodeWidget(
                   fileTreeEntity: fileInCurrentDir,
+                  matches: matches,
                 ),
               ))
           .toList(),
 
       /// ------------------------------------------------- keys to sort [childData] by
       childDataParameters: const [
-        ParameterBIL(
-          name: "Name",
-          sort: BrickFileTreeBrowser.compareName,
-          searchStringExtractor: BrickFileTreeBrowser.extractNameForSearch,
-        ),
-        ParameterBIL(
-          name: "Change",
-          sort: BrickFileTreeBrowser.compareChange,
-        ),
+        BrickFileTreeBrowser.namePARAM,
+        BrickFileTreeBrowser.changePARAM,
       ],
 
       /// ------------------------------------------------- [padding] for overlay
@@ -257,14 +205,17 @@ class FileTreeNodeWidget extends StatefulWidget {
   const FileTreeNodeWidget({
     Key? key,
     required this.fileTreeEntity,
+    this.matches,
   }) : super(key: key);
 
   final FileTreeEntity fileTreeEntity;
+  final List<SearchMatchBIL>? matches; // TODO highlight match
 
   @override
   State<FileTreeNodeWidget> createState() => _FileTreeNodeWidgetState();
 }
 
+// TODO this probably does not need to be stateful
 class _FileTreeNodeWidgetState extends State<FileTreeNodeWidget> {
   bool get isDir => widget.fileTreeEntity.isDir;
   List<FileTreeEntity> get children => (widget.fileTreeEntity as FileTreeDir).entities;
@@ -273,6 +224,25 @@ class _FileTreeNodeWidgetState extends State<FileTreeNodeWidget> {
 
   @override
   Widget build(BuildContext context) {
+    String _fileName = widget.fileTreeEntity.name;
+
+    StringOffset? _nameMatch;
+    List<String>? _fileNameSegments; // 0-matchStart,matchStart-matchEnd,matchEnd-stringEnd
+
+    if (widget.matches != null) {
+      try {
+        _nameMatch = widget.matches!
+            .firstWhere(
+              (element) => element.parameterName == BrickFileTreeBrowser.namePARAM.name,
+            )
+            .matchOffset;
+
+        _fileNameSegments = StringHelper.splitStringBasedOnMatch(_fileName, _nameMatch);
+      } on StateError catch (_) {
+        // simply keep nameMatch null if not found
+      }
+    }
+
     return ClipRRect(
       borderRadius: BORDER_RADIUS_ALL_10,
       child: Material(
@@ -306,7 +276,31 @@ class _FileTreeNodeWidgetState extends State<FileTreeNodeWidget> {
                       ),
                     ],
                   ),
-                  child: Text(widget.fileTreeEntity.name),
+                  child: (_nameMatch == null)
+                      ? Text(_fileName)
+                      : RichText(
+                          text: TextSpan(
+                            children: [
+                              // pre-match
+                              TextSpan(
+                                text: _fileNameSegments![0],
+                              ),
+                              // match
+                              TextSpan(
+                                text: _fileNameSegments[1],
+                                style: const TextStyle(
+                                  decoration: TextDecoration.underline,
+                                  backgroundColor: Colors.white,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              // post-match
+                              TextSpan(
+                                text: _fileNameSegments[2],
+                              ),
+                            ],
+                          ),
+                        ),
                 ),
               ],
             ),

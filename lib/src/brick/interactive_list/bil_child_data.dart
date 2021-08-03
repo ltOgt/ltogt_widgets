@@ -1,52 +1,54 @@
 import 'package:flutter/widgets.dart';
-import 'package:ltogt_utils/ltogt_utils.dart';
+
+import 'package:ltogt_widgets/src/brick/interactive_list/bil_search_matches.dart';
 
 class ChildDataBIL<T> {
   final T data;
 
   /// Build Function for the widget representing this [data].
   /// [data] is typically used in the implementation of [build]:
-  /// ```dart
+  ///
+  /// [matches] will be non-null when the widget was found via search.
+  /// The contained data can be used to build highlights or similar things.
+  /// ```
   /// ChildData<MyObj>(
   ///   data: myObj,
-  ///   build: (context) => MyWidget(e: e),
+  ///   build: (context, matches) => MyWidget(myObj: myObj, match: matches),
   /// ),
   /// ```
   final Widget Function(
     BuildContext context,
-    /*StringOffset? searchMatch*/
+    List<SearchMatchBIL>? matches,
   ) build;
 
-  /// BIL needs to know which item matches to filter them by
-  /// BIL provides the match offset to the widget (via build ?)
-  /// ChildData provides the content that can be searched via an optional function
-  //final String Function()? searchPoint;
+  final ChildDataIdBIL id;
 
-  /// maybe do this via searchOptions after all
-  /// that way you can have multiple parts of [data] exposed via different search options on T
-  /// searchMatch would need to know which searchPoint was hit (maybe just via index on the search option list)
-  ///
-  ///
-  ///
-  /// build children via ChildData
-  ///   includes builder that uses the rest of the object at declaration site
-  ///     § ```dart
-  ///       ChildData<MyObj>(
-  ///         data: myObj,
-  ///         build: (context) => MyWidget(e: e),
-  ///       ),
-  ///       ```
-  ///   for all parameters of <MyObj>
-  ///     make searchable
-  ///       with buildMatch for hits on that parameter
-  ///     make sortable
-  ///       needs to define order on that parameter
-  /// basically want:
-  ///   List<DATA>
-  ///
-
-  const ChildDataBIL({
+  ChildDataBIL({
     required this.data,
     required this.build,
-  });
+  }) : id = ChildDataIdBIL.generate();
+}
+
+/// Auto-Generated ID for lookup to match [SearchMatchBIL] to [ChildDataBIL]
+/// even when [BrickInteractiveList] changes the ordering and count of the child data.
+class ChildDataIdBIL {
+  final String value;
+  const ChildDataIdBIL._(this.value);
+
+  static int _circle = 0;
+  static const int _circleMax = 1000;
+  static ChildDataIdBIL generate() {
+    ChildDataIdBIL._circle = _circle++ % _circleMax;
+    return ChildDataIdBIL._(DateTime.now().toIso8601String() + "$_circle");
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is ChildDataIdBIL && other.value == value;
+  }
+
+  @override
+  int get hashCode => value.hashCode;
 }

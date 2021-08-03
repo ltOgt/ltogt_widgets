@@ -55,7 +55,7 @@ class _TodoWidgetState extends State<TodoWidget> {
         childData: todos
             .map((e) => ChildDataBIL<TodoObject>(
                   data: e,
-                  build: (c) => e.build(c, update),
+                  build: (c, matches) => e.build(c, update),
                 ))
             .toList(),
         childDataParameters: const [

@@ -10,6 +10,7 @@ import 'package:ltogt_utils_flutter/ltogt_utils_flutter.dart';
 import 'package:ltogt_widgets/ltogt_widgets.dart';
 import 'package:ltogt_widgets/src/brick/interactive_list/bil_child_data.dart';
 import 'package:ltogt_widgets/src/brick/interactive_list/bil_parameter.dart';
+import 'package:ltogt_widgets/src/brick/interactive_list/bil_search_matches.dart';
 import 'package:ltogt_widgets/src/const/sizes.dart';
 import 'package:ltogt_widgets/src/enum/brick_elevation.dart';
 import 'package:ltogt_widgets/src/enum/sort_order.dart';
@@ -86,8 +87,13 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
   late LinkedHashSet<ChildDataBIL<T>> sManipulatedChildren;
 
   // does not call setState
-  void _resetManipulatedChildren() {
+  void _resetManipulatedChildrenFromWidget() {
     sManipulatedChildren = LinkedHashSet.from(widget.childData);
+  }
+
+  // does not call set state
+  void _clearManipulatedChildren() {
+    sManipulatedChildren = LinkedHashSet();
   }
 
   /// ============================================================== Lifecyle-Functions
@@ -99,7 +105,7 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
     _checkIfSearchEnabled();
     _checkIfSortEnabled();
 
-    _resetManipulatedChildren();
+    _resetManipulatedChildrenFromWidget();
     // intial ordering to sync list and sort key
     _order(sSortParam);
   }
@@ -111,7 +117,7 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
     /// If childData has changed, reset subset and re-apply manipulations
     if (false == listEquals(oldWidget.childData, widget.childData)) {
       /// Reset
-      _resetManipulatedChildren();
+      _resetManipulatedChildrenFromWidget();
 
       // Re-Apply
       _applyFilterToChildData();
@@ -193,6 +199,19 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
   /// ============================================================== SEARCHING
   late bool sIsSearchEnabled;
 
+  /// Whether the search bar is visible or not
+  bool sIsSearchBarVisible = false;
+
+  /// Whether the search should be interpreted as regex
+  /// Only effective when [sIsSearchBarVisible]
+  bool sIsSearchRegexMode = false;
+
+  /// The actual String typed by the user
+  String? sSearchInput;
+
+  /// Collection of matches in [widget.childData] based on active [widget.childDataParameters]
+  SearchMatchesBIL sSearchMatches = SearchMatchesBIL({}); // TODO needs to be reset
+
   // does not call setState
   // check if parent enabled search and iff so if search is defined on params
   void _checkIfSearchEnabled() {
@@ -208,16 +227,6 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
     );
   }
 
-  /// Whether the search bar is visible or not
-  bool sIsSearchBarVisible = false;
-
-  /// Whether the search should be interpreted as regex
-  /// Only effective when [sIsSearchBarVisible]
-  bool sIsSearchRegexMode = false;
-
-  /// The actual String typed by the user
-  String? sSearchInput;
-
   void onToggleSearchRegexMode() {
     setState(() {
       sIsSearchRegexMode = !sIsSearchRegexMode;
@@ -228,7 +237,7 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
 
   /// does not call setState, needs to be done by caller
   void _resetChildDataSearchManipulation() {
-    _resetManipulatedChildren();
+    _resetManipulatedChildrenFromWidget();
     // TODO once optional, check if sorting enabled before calling
     _order(sSortParam);
   }
@@ -256,8 +265,9 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
 
         _applyFilterToChildData();
 
-        // TODO once optional, check if sorting enabled before calling
-        _order(sSortParam);
+        if (sIsSortEnabled) {
+          _order(sSortParam);
+        }
       });
 
   /// does not call setState, needs to be done by caller
@@ -268,30 +278,33 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
     }
 
     // TODO change to StringOffset? with null acting as false
-    bool Function(String searchable)? matchSearchable;
+    StringOffset? Function(String searchable)? matchSearchable;
 
     if (sIsSearchRegexMode) {
       // Try catch for regex, since it might not be valid in the current state
       try {
         final regex = RegExp(sSearchInput!);
-        matchSearchable = (String searchable) => regex.hasMatch(searchable);
+        matchSearchable = (String searchable) => StringOffset.fromRegexMatchOrNull(
+              regex.firstMatch(searchable),
+            );
       } on FormatException catch (_) {
         // matcher stays null -> dont apply anything
       }
     } else {
-      //matchSearchable = (String searchable) => searchable.contains(sSearchInput!);
-      matchSearchable = (String searchable) {
-        return searchable.contains(sSearchInput!);
-      };
+      matchSearchable = (String searchable) => StringOffset.fromSubstringMatchOrNull(
+            StringHelper.matchSubstring(searchable, sSearchInput!),
+          );
     }
 
     // If regex did not fail to compile, match children based on the active parameters
     // TODO keep track of all active parameters; maybe need mutli param for sorting as well; maybe need custom ordering of parameters to prioritize combinations
     if (matchSearchable != null) {
       // Clear to re-populate
-      sManipulatedChildren = LinkedHashSet();
+      _clearManipulatedChildren();
 
-      for (final param in widget.childDataParameters) {
+      for (int iP = 0; iP < widget.childDataParameters.length; iP++) {
+        final param = widget.childDataParameters[iP];
+
         // only for parameters that define search string extractor
         if (false == param.isSearchDefined) {
           continue;
@@ -302,11 +315,20 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
 
         // add matching childData
         for (final childDatum in widget.childData) {
-          // TODO keep track of matches instead of just filtering
-
           // get searchable data from parameter and use to search against
-          if (matchSearchable(searchableFrom(childDatum.data))) {
+          StringOffset? match = matchSearchable(searchableFrom(childDatum.data));
+
+          if (match != null) {
+            // add to list that will be rendered
             sManipulatedChildren.add(childDatum);
+
+            // store match to send to childData.build
+            if (false == sSearchMatches.matches.containsKey(childDatum.id)) {
+              sSearchMatches.matches[childDatum.id] = [];
+            }
+            sSearchMatches.matches[childDatum.id]!.add(
+              SearchMatchBIL(matchOffset: match, parameterIndex: iP, parameterName: param.name),
+            );
           }
         }
       }
@@ -375,9 +397,16 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
         ),
       );
 
+  /// ============================================================== assertions
+  void assertions() {
+    assert(ParameterConsistencyCheckerBIL.checkNoDuplicateNames(widget.childDataParameters));
+  }
+
   /// ============================================================== build
   @override
   Widget build(BuildContext context) {
+    assertions();
+
     if (sBarPadding == null) {
       calculateBarPaddingInNextFrame();
     }
@@ -443,7 +472,7 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
                 ...ListGenerator.seperated(
                   seperator: SIZED_BOX_2,
                   list: sManipulatedChildren.toList(),
-                  builder: (ChildDataBIL data, int i) => data.build(context),
+                  builder: (ChildDataBIL data, int i) => data.build(context, sSearchMatches.matches[data.id]),
                 ),
                 SIZED_BOX_5,
               ],

@@ -1,12 +1,10 @@
 class ParameterBIL<T> {
-  /// Name of the parameter
+  /// Unique Name of the parameter
   /// Need to use this to match the match results in [childData.build] to their parameters.
-  // TODO add consitency checker that names of all passed parameters are unique (via assert)
   final String name;
 
   /// -------------------------------------------------------------------------------- [Sorting]
   /// Ordering function
-  // TODO make optional if parameter should not be sorted
   final int Function(T d1, T d2)? sort;
 
   /// Annoyingly needed internally because of contravariance of parameters
@@ -35,5 +33,26 @@ class ParameterBIL<T> {
     required this.name,
     required this.sort,
     this.searchStringExtractor,
-  });
+  }) : assert(
+          sort != null || searchStringExtractor != null,
+          "Useless parameter",
+        );
+}
+
+class ParameterConsistencyCheckerBIL {
+  static bool checkNoDuplicateNames<T>(List<ParameterBIL<T>> params) {
+    Map<String, ParameterBIL> duplicateMap = {};
+    for (final p in params) {
+      final duplicate = duplicateMap[p.name];
+      if (duplicate != null) {
+        assert(
+          false,
+          "Found duplicate named parameter: ${duplicate.name}. This is not allowed, since unique names are needed in childData.build to know which parameter matched in search.",
+        );
+        return false;
+      }
+      duplicateMap[p.name] = p;
+    }
+    return true;
+  }
 }

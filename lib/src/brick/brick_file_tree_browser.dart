@@ -5,6 +5,7 @@ import 'package:ltogt_widgets/ltogt_widgets.dart';
 import 'package:ltogt_widgets/src/brick/interactive_list/bil_child_data.dart';
 import 'package:ltogt_widgets/src/brick/interactive_list/bil_search_matches.dart';
 import 'package:ltogt_widgets/src/const/sizes.dart';
+import 'package:ltogt_widgets/src/util/match_text.dart';
 
 class BrickFileTreeBrowser extends StatefulWidget {
   static const iconButtonPadding = EdgeInsets.symmetric(horizontal: 4, vertical: 2);
@@ -227,20 +228,11 @@ class _FileTreeNodeWidgetState extends State<FileTreeNodeWidget> {
     String _fileName = widget.fileTreeEntity.name;
 
     StringOffset? _nameMatch;
-    List<String>? _fileNameSegments; // 0-matchStart,matchStart-matchEnd,matchEnd-stringEnd
 
     if (widget.matches != null) {
-      try {
-        _nameMatch = widget.matches!
-            .firstWhere(
-              (element) => element.parameterName == BrickFileTreeBrowser.namePARAM.name,
-            )
-            .matchOffset;
-
-        _fileNameSegments = StringHelper.splitStringBasedOnMatch(_fileName, _nameMatch);
-      } on StateError catch (_) {
-        // simply keep nameMatch null if not found
-      }
+      _nameMatch = widget.matches!
+          .firstWhereOrNull((element) => element.parameterName == BrickFileTreeBrowser.namePARAM.name)
+          ?.matchOffset;
     }
 
     return ClipRRect(
@@ -276,31 +268,9 @@ class _FileTreeNodeWidgetState extends State<FileTreeNodeWidget> {
                       ),
                     ],
                   ),
-                  child: (_nameMatch == null)
+                  child: (_nameMatch == null) //
                       ? Text(_fileName)
-                      : RichText(
-                          text: TextSpan(
-                            children: [
-                              // pre-match
-                              TextSpan(
-                                text: _fileNameSegments![0],
-                              ),
-                              // match
-                              TextSpan(
-                                text: _fileNameSegments[1],
-                                style: const TextStyle(
-                                  decoration: TextDecoration.underline,
-                                  backgroundColor: Colors.white,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              // post-match
-                              TextSpan(
-                                text: _fileNameSegments[2],
-                              ),
-                            ],
-                          ),
-                        ),
+                      : MatchText(text: _fileName, match: _nameMatch),
                 ),
               ],
             ),

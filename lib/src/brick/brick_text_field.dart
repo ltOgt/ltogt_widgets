@@ -28,7 +28,21 @@ class BrickTextField extends StatefulWidget {
 }
 
 class _BrickTextFieldState extends State<BrickTextField> {
-  void onChange() => widget.onChange(controller.text);
+  String previousValue = "";
+
+  void onChange() {
+    // might be triggered simply on focus change
+    // only trigger callback when value actually changed
+
+    String? _value = controller.text;
+    if (_value != previousValue) {
+      widget.onChange(_value);
+      setState(() {
+        previousValue = _value;
+      });
+    }
+  }
+
   TextEditingController controller = TextEditingController();
 
   @override

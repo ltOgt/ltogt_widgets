@@ -1,8 +1,13 @@
 import 'dart:ui';
 
 class BrickColorTheme {
+  // ============================================================== Text
   /// Color for all types of text.
   final Color text;
+
+  /// Color for text that has been matched
+  final Color textMatchFg;
+  final Color textMatchBg;
 
   /// Color for all icons
   final Color icon;
@@ -75,6 +80,8 @@ class BrickColorTheme {
 
   const BrickColorTheme({
     required this.text,
+    required this.textMatchFg,
+    required this.textMatchBg,
     required this.icon,
     required this.background,
     required this.background2,
@@ -101,6 +108,8 @@ class BrickColorTheme {
 
   BrickColorTheme copyWith({
     Color? text,
+    Color? textMatchFg,
+    Color? textMatchBg,
     Color? icon,
     Color? background,
     Color? background2,
@@ -124,6 +133,8 @@ class BrickColorTheme {
   }) {
     return BrickColorTheme(
       text: text ?? this.text,
+      textMatchFg: textMatchFg ?? this.textMatchFg,
+      textMatchBg: textMatchBg ?? this.textMatchBg,
       icon: icon ?? this.icon,
       background: background ?? this.background,
       background2: background2 ?? this.background2,
@@ -177,6 +188,8 @@ class _BrickColorThemeDefaults {
 
   static const BrickColorTheme theme = BrickColorTheme(
     text: _white,
+    textMatchFg: _black,
+    textMatchBg: _white,
     icon: _white,
     background: _grey4,
     background2: _grey2,

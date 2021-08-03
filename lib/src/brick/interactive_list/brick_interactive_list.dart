@@ -238,8 +238,11 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
   /// does not call setState, needs to be done by caller
   void _resetChildDataSearchManipulation() {
     _resetManipulatedChildrenFromWidget();
-    // TODO once optional, check if sorting enabled before calling
-    _order(sSortParam);
+    sSearchMatches.matches.clear();
+
+    if (sIsSortEnabled) {
+      _order(sSortParam);
+    }
   }
 
   /// Hide or show the search bar and reset related state
@@ -301,6 +304,7 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
     if (matchSearchable != null) {
       // Clear to re-populate
       _clearManipulatedChildren();
+      sSearchMatches.matches.clear();
 
       for (int iP = 0; iP < widget.childDataParameters.length; iP++) {
         final param = widget.childDataParameters[iP];
@@ -348,7 +352,7 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
     });
   }
 
-  EdgeInsetsGeometry _calculateContentPadding() {
+  EdgeInsets _calculateContentPadding() {
     // : Add padding with same height as bar after first frame (for first frame approx. with 60)
     final _barPadding = (sBarPadding ?? 60.0) + 1;
 
@@ -360,7 +364,12 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
     );
 
     // : Add additional content padding if user of this widget puts additional elements on top of the list similar to the bar
-    return basePadding.add(widget.additionalContentPadding);
+    return EdgeInsets.only(
+      top: basePadding.top + widget.additionalContentPadding.top,
+      bottom: basePadding.bottom + widget.additionalContentPadding.bottom,
+      right: basePadding.right + widget.additionalContentPadding.right,
+      left: basePadding.left + widget.additionalContentPadding.left,
+    );
   }
 
   /// ============================================================== theme
@@ -426,6 +435,8 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
     ];
     if (_topBarBelow.isEmpty) _topBarBelow = null;
 
+    final EdgeInsets _contentPadding = _calculateContentPadding();
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: theme.radius.medium,
@@ -440,7 +451,7 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
               scrollDirection: Axis.vertical,
 
               /// ------------------------------------------------- [padding] for overlay
-              childPadding: _calculateContentPadding(),
+              childPadding: _contentPadding,
               overlay: [
                 /// ------------------------------------------------- [_OrderBar]
                 Positioned(
@@ -460,6 +471,14 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
                     childrenBelow: _topBarBelow,
                   ),
                 ),
+
+                if (sSearchMatches.matches.isNotEmpty)
+                  Positioned(
+                    top: widget.isBarOnTop ? _contentPadding.top + 10 : null,
+                    bottom: widget.isBarOnTop ? null : _contentPadding.bottom + 10,
+                    right: 20,
+                    child: Text("${sSearchMatches.matches.length}/${widget.childData.length}"),
+                  ),
 
                 /// ------------------------------------------------- [overlay]
                 ...widget.overlay,

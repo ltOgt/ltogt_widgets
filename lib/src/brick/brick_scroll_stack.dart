@@ -43,7 +43,7 @@ class BrickScrollStack extends StatelessWidget {
   final List<Widget> children;
 
   /// Additional padding to the scroll area around [children].
-  final EdgeInsetsGeometry childPadding;
+  final EdgeInsets childPadding;
 
   /// Children to position on an overlaying stack.
   /// Can be useful in combination with [childPadding].

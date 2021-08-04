@@ -160,10 +160,10 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
     bool _existsParamThatDefinesSort =
         widget.childDataParameters.fold(false, (bool acc, ParameterBIL e) => acc || e.isSortDefined);
 
-    sIsSortEnabled = widget.isSearchEnabled && _existsParamThatDefinesSort;
+    sIsSortEnabled = widget.isSortEnabled && _existsParamThatDefinesSort;
     assert(
       false == sIsSortEnabled || _existsParamThatDefinesSort,
-      "Search enabled, but no search defined via parameters",
+      "Sort enabled, but no sort defined via parameters",
     );
   }
 
@@ -203,7 +203,7 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
   bool sIsSearchBarVisible = false;
 
   /// Whether the search should be interpreted as regex
-  /// Only effective when [sIsSearchBarVisible]
+  /// Only effective when [sIsSearchBarVisible]search
   bool sIsSearchRegexMode = false;
 
   /// The actual String typed by the user
@@ -225,6 +225,12 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
       false == widget.isSearchEnabled || _existsParamThatDefinesSearch,
       "Search enabled, but no search defined via parameters",
     );
+
+    if (false == sIsSearchEnabled) {
+      sIsSearchBarVisible = false;
+      sSearchMatches.matches.clear();
+      sSearchInput = null;
+    }
   }
 
   void onToggleSearchRegexMode() {
@@ -461,8 +467,9 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
                   right: 0,
                   child: _InteractionBar<T>(
                     key: barKey,
+                    isSortEnabled: sIsSortEnabled,
                     isOrderDesc: isOrderDesc,
-                    sortOption: sSortParam,
+                    activeSortOption: sSortParam,
                     sortOptions: widget.childDataParameters,
                     onChangeOrder: changeOrder,
                     onToggleDirection: () => changeOrder(sSortParam),
@@ -546,7 +553,8 @@ class _InteractionBar<T> extends StatelessWidget {
     Key? key,
     required this.onChangeOrder,
     required this.onToggleDirection,
-    required this.sortOption,
+    required this.isSortEnabled,
+    required this.activeSortOption,
     required this.sortOptions,
     required this.isOrderDesc,
     required this.trailing,
@@ -556,12 +564,14 @@ class _InteractionBar<T> extends StatelessWidget {
 
   final void Function(ParameterBIL<T> sortKey) onChangeOrder;
   final void Function() onToggleDirection;
-  final ParameterBIL<T> sortOption;
+  final ParameterBIL<T> activeSortOption;
   final List<ParameterBIL<T>> sortOptions;
   final bool isOrderDesc;
   final List<Widget> trailing;
   final List<Widget> trailingClose;
   final List<Widget>? childrenBelow;
+
+  final bool isSortEnabled;
 
   final double scrollAreaHeight = 32;
 
@@ -604,12 +614,14 @@ class _InteractionBar<T> extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           leading: Row(
             children: [
-              BrickIconButton(
-                size: SMALL_BUTTON_SIZE,
-                onPressed: (_) => onToggleDirection(),
-                icon: isOrderDesc ? _arrowDownIcon : _arrowUpIcon,
-              ),
-              SIZED_BOX_10,
+              if (isSortEnabled) ...[
+                BrickIconButton(
+                  size: SMALL_BUTTON_SIZE,
+                  onPressed: (_) => onToggleDirection(),
+                  icon: isOrderDesc ? _arrowDownIcon : _arrowUpIcon,
+                ),
+                SIZED_BOX_10,
+              ],
               Container(
                 height: scrollAreaHeight,
                 width: 1,
@@ -652,21 +664,22 @@ class _InteractionBar<T> extends StatelessWidget {
             ),
           ],
           children: [
-            ...ListGenerator.seperated(
-              seperator: SIZED_BOX_10,
-              leadingSeperator: true,
-              list: sortOptions,
-              builder: (ParameterBIL<T> option, int i) {
-                return BrickButton(
-                  child: Text(option.name),
-                  isActive: sortOption == option,
-                  onPress: () => onChangeOrder(
-                    option,
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                );
-              },
-            ),
+            if (isSortEnabled)
+              ...ListGenerator.seperated(
+                seperator: SIZED_BOX_10,
+                leadingSeperator: true,
+                list: sortOptions,
+                builder: (ParameterBIL<T> option, int i) {
+                  return BrickButton(
+                    child: Text(option.name),
+                    isActive: activeSortOption == option,
+                    onPress: () => onChangeOrder(
+                      option,
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  );
+                },
+              ),
             ...WidgetListGenerator.spaced(
               uniform: 5,
               beforeFirst: true,

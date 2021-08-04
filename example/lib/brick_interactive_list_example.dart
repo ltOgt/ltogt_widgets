@@ -120,12 +120,10 @@ class TodoObject {
   })  : creationDate = DateTime.now(),
         _changeDate = null;
 
-  Widget build(BuildContext context, List<SearchMatchBIL>? matches, [Function()? setState]) {
-    SearchMatchBIL? taskMatch, userMatch;
-    taskMatch = matches?.firstWhereOrNull((element) => element.parameterName == taskPARAM.name);
-    userMatch = matches?.firstWhereOrNull((element) {
-      return element.parameterName == userPARAM.name;
-    });
+  Widget build(BuildContext context, StringOffsetByParameterName? matches, [Function()? setState]) {
+    StringOffset? taskMatch, userMatch;
+    taskMatch = matches?[taskPARAM.name];
+    userMatch = matches?[userPARAM.name];
 
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -144,10 +142,10 @@ class TodoObject {
             children: [
               taskMatch == null
                   ? Text("TASK: $taskName")
-                  : MatchText(text: "TASK: $taskName", match: taskMatch.matchOffset.offset(6)),
+                  : MatchText(text: "TASK: $taskName", match: taskMatch.offset(6)),
               userMatch == null
                   ? Text("USER: $userName")
-                  : MatchText(text: "USER: $userName", match: userMatch.matchOffset.offset(6)),
+                  : MatchText(text: "USER: $userName", match: userMatch.offset(6)),
               Text("CREATED: $creationDate"),
               Text("CHANGED: $changeDate"),
             ],

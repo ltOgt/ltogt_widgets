@@ -18,7 +18,7 @@ class ChildDataBIL<T> {
   /// ```
   final Widget Function(
     BuildContext context,
-    List<SearchMatchBIL>? matches,
+    StringOffsetByParameterName? matches,
   ) build;
 
   final ChildDataIdBIL id;

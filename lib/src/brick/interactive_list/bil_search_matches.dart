@@ -9,25 +9,12 @@ import 'package:ltogt_widgets/src/brick/interactive_list/brick_interactive_list.
 ///
 /// Passed to [ChildDataBIL.build].
 class SearchMatchesBIL {
-  /// List of Matches for a child from [BrickInteractiveList.childData], identified by its auto-generated id.
-  final Map<ChildDataIdBIL, List<SearchMatchBIL>> matches;
+  /// Map of Matches for a child from [BrickInteractiveList.childData], identified by its auto-generated id.
+  final MatchesByChildId matches;
 
   SearchMatchesBIL(this.matches);
 }
 
-class SearchMatchBIL {
-  /// The index of [BrickInteractiveList.childDataParameter] that matched
-  final int parameterIndex;
-
-  /// The name of  [BrickInteractiveList.childDataParameter] that matched
-  final String parameterName;
-
-  /// The range of a specific [ParameterBIL<T>] of [T] of [ChildDataBIL<T>] that was matched.
-  final StringOffset matchOffset;
-
-  SearchMatchBIL({
-    required this.parameterIndex,
-    required this.parameterName,
-    required this.matchOffset,
-  });
-}
+typedef MatchesByChildId = Map<ChildDataIdBIL, StringOffsetByParameterName>;
+typedef StringOffsetByParameterName = Map<ParameterName, StringOffset>;
+typedef ParameterName = String;

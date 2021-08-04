@@ -312,9 +312,7 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
       _clearManipulatedChildren();
       sSearchMatches.matches.clear();
 
-      for (int iP = 0; iP < widget.childDataParameters.length; iP++) {
-        final param = widget.childDataParameters[iP];
-
+      for (final param in widget.childDataParameters) {
         // only for parameters that define search string extractor
         if (false == param.isSearchDefined) {
           continue;
@@ -334,11 +332,9 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
 
             // store match to send to childData.build
             if (false == sSearchMatches.matches.containsKey(childDatum.id)) {
-              sSearchMatches.matches[childDatum.id] = [];
+              sSearchMatches.matches[childDatum.id] = {};
             }
-            sSearchMatches.matches[childDatum.id]!.add(
-              SearchMatchBIL(matchOffset: match, parameterIndex: iP, parameterName: param.name),
-            );
+            sSearchMatches.matches[childDatum.id]![param.name] = match;
           }
         }
       }

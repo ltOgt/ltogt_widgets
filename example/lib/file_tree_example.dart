@@ -16,7 +16,7 @@ void main() {
                 height: 500,
                 child: BrickFileTreeBrowser(
                   rootDir: rootDir,
-                  initialPath: FileTreePath("home/omni/repos/package/ltogt_widgets".split("/")),
+                  initialPath: FileTreePath([rootDir.name]),
                 ),
               ),
             ),
@@ -28,45 +28,36 @@ void main() {
 }
 
 final FileTreeDir rootDir = FileTreeDir(
-  name: "root",
+  name: "home",
   dirs: [
     FileTreeDir(
-      name: "folder",
+      name: "user",
       dirs: [
         FileTreeDir(
-          name: "folder",
+          name: "documents",
+          files: [
+            FileTreeFile(name: "homework.tex"),
+            FileTreeFile(name: "homework.pdf"),
+          ],
+        ),
+        FileTreeDir(name: "pictures", files: [
+          FileTreeFile(name: "doggo.jpg"),
+          FileTreeFile(name: "doggo2.jpg"),
+          FileTreeFile(name: "doggo3.jpg"),
+          FileTreeFile(name: "doggo4.jpg"),
+          FileTreeFile(name: "doggo5.jpg"),
+          FileTreeFile(name: "doggo_hd.png"),
+          FileTreeFile(name: "kitty.jpg"),
+          FileTreeFile(name: "kitty2.jpg"),
+          FileTreeFile(name: "kitty3.jpg"),
+          FileTreeFile(name: "kitty4.jpg"),
+          FileTreeFile(name: "kitty5.jpg"),
+          FileTreeFile(name: "kitty_hd.png"),
+        ]),
+        FileTreeDir(
+          name: "downloads",
         ),
       ],
-      files: [
-        FileTreeFile(name: "file1.txt"),
-        FileTreeFile(name: "file2.txt"),
-        FileTreeFile(name: "file3.txt"),
-        FileTreeFile(name: "file4.txt"),
-        FileTreeFile(name: "file5.txt"),
-      ],
     ),
-    FileTreeDir(
-      name: "folderEmpty",
-    ),
-  ],
-  files: [
-    FileTreeFile(name: "file1.txt"),
-    FileTreeFile(name: "file2.txt"),
-    FileTreeFile(name: "file3.txt"),
-    FileTreeFile(name: "file4.txt"),
-    FileTreeFile(name: "file5.txt"),
-    FileTreeFile(name: "file6.txt"),
-    FileTreeFile(name: "file7.txt"),
-    FileTreeFile(name: "file8.txt"),
-    FileTreeFile(name: "file9.txt"),
-    FileTreeFile(name: "file1.gid"),
-    FileTreeFile(name: "file2.gid"),
-    FileTreeFile(name: "file3.gid"),
-    FileTreeFile(name: "file4.gid"),
-    FileTreeFile(name: "file5.gid"),
-    FileTreeFile(name: "file6.gid"),
-    FileTreeFile(name: "file7.gid"),
-    FileTreeFile(name: "file8.gid"),
-    FileTreeFile(name: "file9.gid"),
   ],
 );

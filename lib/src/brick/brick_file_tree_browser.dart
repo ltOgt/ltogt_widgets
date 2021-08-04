@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:ltogt_utils/ltogt_utils.dart';
 import 'package:ltogt_utils_flutter/ltogt_utils_flutter.dart';
 import 'package:ltogt_widgets/ltogt_widgets.dart';
+import 'package:ltogt_widgets/src/brick/brick_icon.dart';
 import 'package:ltogt_widgets/src/brick/interactive_list/bil_child_data.dart';
 import 'package:ltogt_widgets/src/brick/interactive_list/bil_search_matches.dart';
 import 'package:ltogt_widgets/src/util/match_text.dart';
@@ -17,12 +18,27 @@ class BrickFileTreeBrowser extends StatefulWidget {
     required this.rootDir,
     this.filePathBarHeight = 28,
     required this.initialPath,
+    this.onSelect,
+    this.onOpen,
   }) : super(key: key);
 
   final double filePathBarHeight;
 
   final FileTreeDir rootDir;
   final FileTreePath initialPath;
+
+  /// Called when a file or directory has be clicked once.
+  /// The respective entity will be highlighted in the list.
+  /// This callbacks enables e.g. to pick a file or directory via single click.
+  final Function(FileTreeEntity file, FileTreePath path)? onSelect;
+  // TODO might need list for multi select
+  // TODO should FileTreeEntities know their own path
+
+  /// Called when a file or directory has be clicked twice.
+  /// The respective entity will be highlighted in the list.
+  /// If the entity is a directory, it will be entered instead.
+  /// This callbacks enables e.g. to pick a file or dir via double click.
+  final Function(FileTreeEntity file, FileTreePath path)? onOpen;
 
   @override
   State<BrickFileTreeBrowser> createState() => _BrickFileTreeBrowserState();
@@ -47,35 +63,78 @@ class BrickFileTreeBrowser extends StatefulWidget {
 
 class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
   // TODO make changeable
-  late List<FileTreeEntity> currentDirContent = widget.rootDir.entities;
+  late List<FileTreeEntity> sCurrentDirContent = widget.rootDir.entities;
 
-  late FileTreePath currentPath = widget.initialPath;
-  late int currentPathIndex = currentPath.segments.length - 1;
+  late FileTreePath sCurrentPath = widget.initialPath;
+  late int sCurrentPathIndex = sCurrentPath.segments.length - 1;
 
-  // TODO reset on search change
-  int? selectedFileIndex;
+  // TODO ? reset on search change
+  FileTreeEntity? sSelectedFile;
+
+  void onSelectFile(FileTreeEntity file) {
+    if (file != sSelectedFile) {
+      setState(() {
+        sSelectedFile = file;
+      });
+      // TODO needs to resepect current index too
+      widget.onSelect?.call(file, sCurrentPath);
+    } else {
+      // TODO needs to resepect current index too
+      widget.onOpen?.call(file, sCurrentPath);
+      openIfDir(file);
+    }
+  }
+
+  void openIfDir(FileTreeEntity e) {
+    if (e.isDir) {
+      setState(() {
+        sCurrentDirContent = (e as FileTreeDir).entities;
+        sCurrentPath = FileTreePath([
+          ...sCurrentPath.segments.sublist(0, sCurrentPathIndex + 1),
+          e.name,
+        ]);
+        sCurrentPathIndex += 1;
+      });
+    }
+  }
+
+  void onSelectPathSegment(int segmentIndex) {
+    var dir = widget.rootDir;
+    for (int s = 1; s <= segmentIndex; s++) {
+      dir = dir.dirs.firstWhere((element) => element.name == sCurrentPath.segments[s]);
+    }
+
+    setState(() {
+      sCurrentPathIndex = segmentIndex;
+      sCurrentDirContent = dir.entities;
+    });
+  }
+
+  static const _homeIcon = BrickIcon(
+    Icons.home,
+  );
+  static const _backIcon = BrickIcon(
+    Icons.arrow_back,
+  );
 
   @override
   Widget build(BuildContext context) {
     final theme = BrickThemeProvider.getTheme(context);
-
-    final _iconColor = theme.color.icon;
     final _shadowColor = theme.color.shadow;
-
-    final _homeIcon = Icon(Icons.home, color: _iconColor);
-    final _backIcon = Icon(Icons.arrow_back, color: _iconColor);
 
     return BrickInteractiveList(
       isSearchEnabled: true,
       isSortEnabled: true,
 
       /// ------------------------------------------------- files to be displayed and sorted for current level
-      childData: currentDirContent
+      childData: sCurrentDirContent
           .map((fileInCurrentDir) => ChildDataBIL(
                 data: fileInCurrentDir,
                 build: (c, matches) => FileTreeNodeWidget(
                   fileTreeEntity: fileInCurrentDir,
                   matches: matches,
+                  isSelected: fileInCurrentDir == sSelectedFile,
+                  onSelect: () => onSelectFile(fileInCurrentDir),
                 ),
               ))
           .toList(),
@@ -96,22 +155,17 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
           left: 0,
           right: 0,
           child: _FilePathOverlay(
+            // TODO on change of path, the scrollable should always be rebuild to again scroll to the right
             homeIcon: _homeIcon,
             backIcon: _backIcon,
             shadowColor: _shadowColor,
             borderColor: theme.color.borderDark,
-            activePathIndex: currentPathIndex,
+            activePathIndex: sCurrentPathIndex,
             height: widget.filePathBarHeight,
-            pathSegments: currentPath.segments,
-            onPressPathSegment: (i) => setState(() {
-              currentPathIndex = i;
-            }),
-            onPressHome: () => setState(() {
-              currentPathIndex = 0;
-            }),
-            onPressBack: () => setState(() {
-              currentPathIndex = max(0, currentPathIndex - 1);
-            }),
+            pathSegments: sCurrentPath.segments,
+            onPressPathSegment: onSelectPathSegment,
+            onPressHome: () => onSelectPathSegment(0),
+            onPressBack: () => onSelectPathSegment(max(0, sCurrentPathIndex - 1)),
           ),
         ),
       ],
@@ -134,8 +188,8 @@ class _FilePathOverlay extends StatelessWidget {
     required this.onPressBack,
   }) : super(key: key);
 
-  final Icon homeIcon;
-  final Icon backIcon;
+  final BrickIcon homeIcon;
+  final BrickIcon backIcon;
   final Color shadowColor;
   final Color borderColor;
 
@@ -261,15 +315,45 @@ class FileTreeNodeWidget extends StatelessWidget {
     Key? key,
     required this.fileTreeEntity,
     this.matches,
+    required this.onSelect,
+    required this.isSelected,
   }) : super(key: key);
 
   final FileTreeEntity fileTreeEntity;
   final StringOffsetByParameterName? matches;
 
+  final Function() onSelect;
+  final bool isSelected;
+
   bool get isDir => fileTreeEntity.isDir;
   List<FileTreeEntity> get children => (fileTreeEntity as FileTreeDir).entities;
 
-  handleTap(Rect? rect) {}
+  static const fileIconDocument = BrickIcon(Icons.description);
+  static const fileIconImage = BrickIcon(Icons.image);
+  static const fileIconVideo = BrickIcon(Icons.movie);
+  static const fileIconAudio = BrickIcon(Icons.audiotrack);
+
+  // TODO add more
+  BrickIcon get iconForFileType {
+    final String _type = FileHelper.fileType(fileTreeEntity.name).toLowerCase();
+    switch (_type) {
+      case '.png':
+      case '.jpg':
+      case '.jpeg':
+        return fileIconImage;
+      case '.mp4':
+      case '.mov':
+      case '.avi':
+      case '.flv':
+      case '.mpg':
+        return fileIconVideo;
+      case '.mp3':
+      case '.wav':
+        return fileIconAudio;
+      default:
+        return fileIconDocument;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -277,45 +361,46 @@ class FileTreeNodeWidget extends StatelessWidget {
 
     StringOffset? _nameMatch = matches?[BrickFileTreeBrowser.namePARAM.name];
 
+    final theme = BrickThemeProvider.getTheme(context);
+    final color = theme.color;
+
+    final _bgColor = isSelected ? color.hover : Colors.transparent;
+
     return ClipRRect(
       borderRadius: BORDER_RADIUS_ALL_10,
-      child: Material(
-        color: Colors.transparent,
-        child: BrickInkWell(
-          color: Colors.transparent,
-          onTap: handleTap,
-          child: Padding(
-            padding: PADDING_ALL_5,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                if (isDir) ...[
-                  const Icon(Icons.folder),
-                ] else ...[
-                  // keep same space for files
-                  const Icon(Icons.description),
-                ],
-                SIZED_BOX_5,
-                ConditionalParentWidget(
-                  condition: fileTreeEntity.lastChange != null,
-                  parentBuilder: (child) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      child,
-                      SIZED_BOX_2,
-                      Text(
-                        DateHelper.dateString(fileTreeEntity.lastChange!),
-                        style: const TextStyle(fontSize: 10),
-                      ),
-                    ],
-                  ),
-                  child: (_nameMatch == null) //
-                      ? Text(_fileName)
-                      : MatchText(text: _fileName, match: _nameMatch),
-                ),
+      child: BrickInkWell(
+        color: _bgColor,
+        onTap: (_) => onSelect(),
+        child: Padding(
+          padding: PADDING_ALL_5,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (isDir) ...[
+                const BrickIcon(Icons.folder),
+              ] else ...[
+                iconForFileType,
               ],
-            ),
+              SIZED_BOX_5,
+              ConditionalParentWidget(
+                condition: fileTreeEntity.lastChange != null,
+                parentBuilder: (child) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    child,
+                    SIZED_BOX_2,
+                    Text(
+                      DateHelper.dateString(fileTreeEntity.lastChange!),
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                  ],
+                ),
+                child: (_nameMatch == null) //
+                    ? Text(_fileName)
+                    : MatchText(text: _fileName, match: _nameMatch),
+              ),
+            ],
           ),
         ),
       ),

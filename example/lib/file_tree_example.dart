@@ -16,8 +16,7 @@ void main() {
                 height: 500,
                 child: BrickFileTreeBrowser(
                   rootDir: rootDir,
-                  pathIndex: 4,
-                  path: FileTreePath("home/omni/repos/package/ltogt_widgets".split("/")),
+                  initialPath: FileTreePath("home/omni/repos/package/ltogt_widgets".split("/")),
                 ),
               ),
             ),

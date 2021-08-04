@@ -16,8 +16,7 @@ void main() {
                 height: 500,
                 child: BrickFileTreeBrowser(
                   rootDir: rootDir,
-                  pathIndex: 4,
-                  path: FileTreePath("home/omni/repos/package/ltogt_widgets".split("/")),
+                  initialPath: FileTreePath("home/omni/repos/package/ltogt_widgets".split("/")),
                 ),
               ),
             ),
@@ -46,6 +45,9 @@ final FileTreeDir rootDir = FileTreeDir(
         FileTreeFile(name: "file5.txt"),
       ],
     ),
+    FileTreeDir(
+      name: "folderEmpty",
+    ),
   ],
   files: [
     FileTreeFile(name: "file1.txt"),
@@ -57,5 +59,14 @@ final FileTreeDir rootDir = FileTreeDir(
     FileTreeFile(name: "file7.txt"),
     FileTreeFile(name: "file8.txt"),
     FileTreeFile(name: "file9.txt"),
+    FileTreeFile(name: "file1.gid"),
+    FileTreeFile(name: "file2.gid"),
+    FileTreeFile(name: "file3.gid"),
+    FileTreeFile(name: "file4.gid"),
+    FileTreeFile(name: "file5.gid"),
+    FileTreeFile(name: "file6.gid"),
+    FileTreeFile(name: "file7.gid"),
+    FileTreeFile(name: "file8.gid"),
+    FileTreeFile(name: "file9.gid"),
   ],
 );

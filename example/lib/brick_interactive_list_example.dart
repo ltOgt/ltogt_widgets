@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ltogt_utils/ltogt_utils.dart';
 import 'package:ltogt_widgets/ltogt_widgets.dart';
 
 void main() {
@@ -51,21 +52,22 @@ class _TodoWidgetState extends State<TodoWidget> {
         shadow: existing.shadow,
         radius: existing.radius,
       ),
-      child: BrickSortableList(
+      child: BrickInteractiveList(
         childData: todos
-            .map((e) => ChildData<TodoObject>(
+            .map((e) => ChildDataBIL<TodoObject>(
                   data: e,
-                  build: (c) => e.build(c, update),
+                  build: (c, matches) => e.build(c, matches, update),
                 ))
             .toList(),
-        sortingOptions: const [
-          SortingOption<TodoObject>(name: "TASK", compare: TodoObject.compareTask),
-          SortingOption<TodoObject>(name: "USER", compare: TodoObject.compareUser),
-          SortingOption<TodoObject>(name: "CREATE", compare: TodoObject.compareCreate),
-          SortingOption<TodoObject>(name: "CHANGE", compare: TodoObject.compareChange),
-          SortingOption<TodoObject>(name: "DONE", compare: TodoObject.compareDone),
+        childDataParameters: const [
+          taskPARAM,
+          userPARAM,
+          createPARAM,
+          changePARAM,
+          donePARAM,
         ],
-        sortBarTrailing: [
+        topBarTrailing: [
+          SIZED_BOX_5,
           const BrickIconButton(
             icon: Icon(Icons.refresh),
           ),
@@ -79,6 +81,29 @@ class _TodoWidgetState extends State<TodoWidget> {
     );
   }
 }
+
+const taskPARAM = ParameterBIL<TodoObject>(
+  name: "TASK",
+  sort: TodoObject.compareTask,
+  searchStringExtractor: TodoObject.extractTask,
+);
+const userPARAM = ParameterBIL<TodoObject>(
+  name: "USER",
+  sort: TodoObject.compareUser,
+  searchStringExtractor: TodoObject.extractUser,
+);
+const createPARAM = ParameterBIL<TodoObject>(
+  name: "CREATE",
+  sort: TodoObject.compareCreate,
+);
+const changePARAM = ParameterBIL<TodoObject>(
+  name: "CHANGE",
+  sort: TodoObject.compareChange,
+);
+const donePARAM = ParameterBIL<TodoObject>(
+  name: "DONE",
+  sort: TodoObject.compareDone,
+);
 
 class TodoObject {
   final String taskName;
@@ -95,34 +120,47 @@ class TodoObject {
   })  : creationDate = DateTime.now(),
         _changeDate = null;
 
-  Widget build(BuildContext context, [Function()? setState]) => Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Checkbox(
-                value: isDone,
-                onChanged: (v) {
-                  isDone = v!;
-                  _changeDate = DateTime.now();
-                  setState?.call();
-                }),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("TASK: $taskName"),
-                Text("USER: $userName"),
-                Text("CREATED: $creationDate"),
-                Text("CHANGED: $changeDate"),
-              ],
-            ),
-          ],
-        ),
-      );
+  Widget build(BuildContext context, StringOffsetByParameterName? matches, [Function()? setState]) {
+    StringOffset? taskMatch, userMatch;
+    taskMatch = matches?[taskPARAM.name];
+    userMatch = matches?[userPARAM.name];
+
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Checkbox(
+              value: isDone,
+              onChanged: (v) {
+                isDone = v!;
+                _changeDate = DateTime.now();
+                setState?.call();
+              }),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              taskMatch == null
+                  ? Text("TASK: $taskName")
+                  : MatchText(text: "TASK: $taskName", match: taskMatch.offset(6)),
+              userMatch == null
+                  ? Text("USER: $userName")
+                  : MatchText(text: "USER: $userName", match: userMatch.offset(6)),
+              Text("CREATED: $creationDate"),
+              Text("CHANGED: $changeDate"),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   static int compareDone(TodoObject t1, TodoObject t2) => (t2.isDone == t1.isDone) ? 0 : (t2.isDone ? 1 : -1);
   static int compareTask(TodoObject t1, TodoObject t2) => t1.taskName.compareTo(t2.taskName);
   static int compareUser(TodoObject t1, TodoObject t2) => t1.userName.compareTo(t2.userName);
   static int compareCreate(TodoObject t1, TodoObject t2) => t1.creationDate.compareTo(t2.creationDate);
   static int compareChange(TodoObject t1, TodoObject t2) => t1.changeDate.compareTo(t2.changeDate);
+
+  static String extractTask(TodoObject t) => t.taskName;
+  static String extractUser(TodoObject t) => t.userName;
 }

@@ -4,10 +4,11 @@ import 'package:ltogt_widgets/ltogt_widgets.dart';
 class BrickTextField extends StatefulWidget {
   const BrickTextField({
     Key? key,
-    required this.onChange,
     required this.hint,
+    required this.onChange,
+    this.onGainFocus,
     this.maxLines,
-    this.bgColor,
+    this.bgColor, // TODO replace with theme
     this.textColor,
     this.fontSize,
     this.editable = true,
@@ -15,6 +16,7 @@ class BrickTextField extends StatefulWidget {
   }) : super(key: key);
 
   final Function(String text) onChange;
+  final Function(String text)? onGainFocus;
   final String hint;
   final int? maxLines;
   final Color? bgColor;
@@ -28,7 +30,23 @@ class BrickTextField extends StatefulWidget {
 }
 
 class _BrickTextFieldState extends State<BrickTextField> {
-  void onChange() => widget.onChange(controller.text);
+  String previousValue = "";
+
+  void onChange() {
+    // might be triggered simply on focus change
+    // only trigger callback when value actually changed
+
+    String? _value = controller.text;
+    if (_value != previousValue) {
+      widget.onChange(_value);
+      setState(() {
+        previousValue = _value;
+      });
+    } else {
+      widget.onGainFocus?.call(previousValue);
+    }
+  }
+
   TextEditingController controller = TextEditingController();
 
   @override

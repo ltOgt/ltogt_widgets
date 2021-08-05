@@ -408,21 +408,22 @@ class FileTreeNodeWidget extends StatelessWidget {
                 iconForFileType,
               ],
               SIZED_BOX_5,
-              ConditionalParentWidget(
-                condition: fileTreeEntity.lastChange != null,
-                parentBuilder: (child) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    child,
-                    SIZED_BOX_2,
-                    Text(
-                      DateHelper.dateString(fileTreeEntity.lastChange!),
-                      style: const TextStyle(fontSize: 10),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-                child: Expanded(
+              // Need expanded for text overflow
+              Expanded(
+                child: ConditionalParentWidget(
+                  condition: fileTreeEntity.lastChange != null,
+                  parentBuilder: (child) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      child,
+                      SIZED_BOX_2,
+                      Text(
+                        DateHelper.dateString(fileTreeEntity.lastChange!),
+                        style: const TextStyle(fontSize: 10),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                   child: (_nameMatch == null) //
                       ? Text(
                           _fileName,

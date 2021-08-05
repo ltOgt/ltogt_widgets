@@ -5,19 +5,21 @@ import 'package:ltogt_widgets/ltogt_widgets.dart';
 void main() {
   runApp(
     MaterialApp(
-      title: 'Brick Button Example',
+      title: 'Brick File Tree Browser Example',
       theme: ThemeData.dark(),
       home: Scaffold(
-        body: Stack(
+        body: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Center(
-              child: Container(
-                padding: const EdgeInsets.all(50),
-                height: 500,
-                child: BrickFileTreeBrowser(
-                  rootDir: rootDir,
-                  initialPath: FileTreePath([rootDir.name]),
-                ),
+            const Text("File Tree Browser Example"),
+            BrickIconButton(icon: Icon(Icons.home)),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 50),
+              height: 800,
+              child: BrickFileTreeBrowser(
+                rootDir: rootDir,
+                initialPath: FileTreePath([rootDir.name]),
               ),
             ),
           ],
@@ -32,6 +34,7 @@ final FileTreeDir rootDir = FileTreeDir(
   files: [
     FileTreeFile(
       name: "some_very_long_file_name_to_see_how_those_are_handled_when_they_are_longer_than_the_screen_is_widge.txt",
+      lastChange: DateTime.now(),
     ),
   ],
   dirs: [

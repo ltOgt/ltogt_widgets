@@ -7,10 +7,12 @@ class MatchText extends StatelessWidget {
     Key? key,
     required this.text,
     required this.match,
+    this.fontSize,
   }) : super(key: key);
 
   final String text;
   final StringOffset match;
+  final double? fontSize;
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +26,10 @@ class MatchText extends StatelessWidget {
           // pre-match
           TextSpan(
             text: segments[0],
+            style: TextStyle(
+              color: theme.color.text,
+              fontSize: fontSize,
+            ),
           ),
           // match
           TextSpan(
@@ -31,11 +37,16 @@ class MatchText extends StatelessWidget {
             style: TextStyle(
               backgroundColor: theme.color.textMatchBg,
               color: theme.color.textMatchFg,
+              fontSize: fontSize,
             ),
           ),
           // post-match
           TextSpan(
             text: segments[2],
+            style: TextStyle(
+              color: theme.color.text,
+              fontSize: fontSize,
+            ),
           ),
         ],
       ),

@@ -38,7 +38,7 @@ class ChildDataIdBIL {
   static int _circle = 0;
   static const int _circleMax = 1000;
   static ChildDataIdBIL generate() {
-    ChildDataIdBIL._circle = _circle++ % _circleMax;
+    _circle = (_circle + 1) % _circleMax;
     return ChildDataIdBIL._(DateTime.now().toIso8601String() + "$_circle");
   }
 

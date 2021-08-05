@@ -20,12 +20,15 @@ class BrickFileTreeBrowser extends StatefulWidget {
     required this.initialPath,
     this.onSelect,
     this.onOpen,
+    this.isDirectoriesSelectable = false,
   }) : super(key: key);
 
   final double filePathBarHeight;
 
   final FileTreeDir rootDir;
   final FileTreePath initialPath;
+
+  final bool isDirectoriesSelectable;
 
   /// Called when a file or directory has be clicked once.
   /// The respective entity will be highlighted in the list.
@@ -48,6 +51,7 @@ class BrickFileTreeBrowser extends StatefulWidget {
       f1.name.toLowerCase().compareTo(f2.name.toLowerCase());
   static int compareChange(FileTreeEntity f1, FileTreeEntity f2) =>
       (f1.lastChange == null) ? -1 : (f2.lastChange == null ? 1 : f1.lastChange!.compareTo(f2.lastChange!));
+  static int compareType(FileTreeEntity f1, FileTreeEntity f2) => (f1.isDir) ? -1 : ((f2.isDir) ? 1 : 0);
   static String extractNameForSearch(FileTreeEntity e) => e.name;
 
   static const namePARAM = ParameterBIL(
@@ -59,6 +63,10 @@ class BrickFileTreeBrowser extends StatefulWidget {
     name: "Change",
     sort: BrickFileTreeBrowser.compareChange,
   );
+  static const folderPARAM = ParameterBIL(
+    name: "Folder",
+    sort: BrickFileTreeBrowser.compareType,
+  );
 }
 
 class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
@@ -67,20 +75,21 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
 
   late FileTreePath sCurrentPath = widget.initialPath;
   late int sCurrentPathIndex = sCurrentPath.segments.length - 1;
+  FileTreePath get _currentPathUntilIndex => FileTreePath(sCurrentPath.segments.sublist(0, sCurrentPathIndex + 1));
 
   // TODO ? reset on search change
   FileTreeEntity? sSelectedFile;
 
   void onSelectFile(FileTreeEntity file) {
-    if (file != sSelectedFile) {
+    bool isSelectable = file.isFile || widget.isDirectoriesSelectable;
+
+    if (isSelectable && file != sSelectedFile) {
       setState(() {
         sSelectedFile = file;
       });
-      // TODO needs to resepect current index too
-      widget.onSelect?.call(file, sCurrentPath);
+      widget.onSelect?.call(file, _currentPathUntilIndex);
     } else {
-      // TODO needs to resepect current index too
-      widget.onOpen?.call(file, sCurrentPath);
+      widget.onOpen?.call(file, _currentPathUntilIndex);
       openIfDir(file);
     }
   }
@@ -90,7 +99,7 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
       setState(() {
         sCurrentDirContent = (e as FileTreeDir).entities;
         sCurrentPath = FileTreePath([
-          ...sCurrentPath.segments.sublist(0, sCurrentPathIndex + 1),
+          ..._currentPathUntilIndex.segments,
           e.name,
         ]);
         sCurrentPathIndex += 1;
@@ -117,6 +126,19 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
     Icons.arrow_back,
   );
 
+  bool get _currentDirContainsFilesAndDirs {
+    bool foundFile = false;
+    bool foundDir = false;
+
+    for (final f in sCurrentDirContent) {
+      foundFile = foundFile || f.isFile;
+      foundDir = foundDir || f.isDir;
+
+      if (foundFile && foundDir) return true;
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = BrickThemeProvider.getTheme(context);
@@ -140,9 +162,12 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
           .toList(),
 
       /// ------------------------------------------------- keys to sort [childData] by
-      childDataParameters: const [
+      childDataParameters: [
         BrickFileTreeBrowser.namePARAM,
-        BrickFileTreeBrowser.changePARAM,
+        if (sCurrentDirContent.any((f) => f.lastChange != null)) //
+          BrickFileTreeBrowser.changePARAM,
+        if (_currentDirContainsFilesAndDirs) //
+          BrickFileTreeBrowser.folderPARAM,
       ],
 
       /// ------------------------------------------------- [padding] for overlay
@@ -393,12 +418,22 @@ class FileTreeNodeWidget extends StatelessWidget {
                     Text(
                       DateHelper.dateString(fileTreeEntity.lastChange!),
                       style: const TextStyle(fontSize: 10),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
-                child: (_nameMatch == null) //
-                    ? Text(_fileName)
-                    : MatchText(text: _fileName, match: _nameMatch),
+                child: Expanded(
+                  child: (_nameMatch == null) //
+                      ? Text(
+                          _fileName,
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      : MatchText(
+                          text: _fileName,
+                          match: _nameMatch,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                ),
               ),
             ],
           ),

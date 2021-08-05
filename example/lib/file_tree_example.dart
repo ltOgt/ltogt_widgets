@@ -29,6 +29,11 @@ void main() {
 
 final FileTreeDir rootDir = FileTreeDir(
   name: "home",
+  files: [
+    FileTreeFile(
+      name: "some_very_long_file_name_to_see_how_those_are_handled_when_they_are_longer_than_the_screen_is_widge.txt",
+    ),
+  ],
   dirs: [
     FileTreeDir(
       name: "user",

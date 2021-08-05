@@ -203,8 +203,9 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
   bool sIsSearchBarVisible = false;
 
   /// Whether the search should be interpreted as regex
-  /// Only effective when [sIsSearchBarVisible]search
+  /// Only effective when [sIsSearchBarVisible]
   bool sIsSearchRegexMode = false;
+  bool sIsSearchCapitalized = false;
 
   /// The actual String typed by the user
   String? sSearchInput;
@@ -236,6 +237,14 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
   void onToggleSearchRegexMode() {
     setState(() {
       sIsSearchRegexMode = !sIsSearchRegexMode;
+      // re-sort with new regex mode
+      _applyFilterToChildData();
+    });
+  }
+
+  void onToggleSearchCapitalized() {
+    setState(() {
+      sIsSearchCapitalized = !sIsSearchCapitalized;
       // re-sort with new regex mode
       _applyFilterToChildData();
     });
@@ -289,10 +298,15 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
     // TODO change to StringOffset? with null acting as false
     StringOffset? Function(String searchable)? matchSearchable;
 
+    String _searchInput = sSearchInput!;
+    if (false == sIsSearchCapitalized) {
+      _searchInput = _searchInput.toLowerCase();
+    }
+
     if (sIsSearchRegexMode) {
       // Try catch for regex, since it might not be valid in the current state
       try {
-        final regex = RegExp(sSearchInput!);
+        final regex = RegExp(_searchInput);
         matchSearchable = (String searchable) => StringOffset.fromRegexMatchOrNull(
               regex.firstMatch(searchable),
             );
@@ -301,7 +315,7 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
       }
     } else {
       matchSearchable = (String searchable) => StringOffset.fromSubstringMatchOrNull(
-            StringHelper.matchSubstring(searchable, sSearchInput!),
+            StringHelper.matchSubstring(searchable, _searchInput),
           );
     }
 
@@ -323,8 +337,13 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
 
         // add matching childData
         for (final childDatum in widget.childData) {
+          String searchable = searchableFrom(childDatum.data);
+          if (false == sIsSearchCapitalized) {
+            searchable = searchable.toLowerCase();
+          }
+
           // get searchable data from parameter and use to search against
-          StringOffset? match = matchSearchable(searchableFrom(childDatum.data));
+          StringOffset? match = matchSearchable(searchable);
 
           if (match != null) {
             // add to list that will be rendered
@@ -400,9 +419,21 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
             ),
             Align(
               alignment: Alignment.centerRight,
-              child: _RegexIndicator(
-                isRegex: sIsSearchRegexMode,
-                onPress: onToggleSearchRegexMode,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  _SearchIndicator(
+                    isActive: sIsSearchCapitalized,
+                    onPress: onToggleSearchCapitalized,
+                    text: " aA ",
+                  ),
+                  _SearchIndicator(
+                    isActive: sIsSearchRegexMode,
+                    onPress: onToggleSearchRegexMode,
+                    text: " .* ",
+                  ),
+                ],
               ),
             )
           ],
@@ -691,21 +722,23 @@ class _InteractionBar<T> extends StatelessWidget {
   }
 }
 
-class _RegexIndicator extends StatelessWidget {
-  const _RegexIndicator({
+class _SearchIndicator extends StatelessWidget {
+  const _SearchIndicator({
     Key? key,
-    required this.isRegex,
+    required this.isActive,
     required this.onPress,
+    required this.text,
   }) : super(key: key);
 
-  final bool isRegex;
+  final bool isActive;
   final Function() onPress;
+  final String text;
 
   static const _transparentRed = Color(0x55FF3333);
 
   @override
   Widget build(BuildContext context) {
-    final color = isRegex ? _transparentRed : Colors.transparent;
+    final color = isActive ? _transparentRed : Colors.transparent;
 
     return Container(
       margin: const EdgeInsets.all(8),
@@ -717,7 +750,7 @@ class _RegexIndicator extends StatelessWidget {
       child: BrickInkWell(
         color: color,
         onTap: (_) => onPress(),
-        child: const Text(" .* "),
+        child: Text(text),
       ),
     );
   }

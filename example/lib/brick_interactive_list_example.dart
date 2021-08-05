@@ -53,6 +53,8 @@ class _TodoWidgetState extends State<TodoWidget> {
         radius: existing.radius,
       ),
       child: BrickInteractiveList(
+        isSortEnabled: true,
+        isSearchEnabled: true,
         childData: todos
             .map((e) => ChildDataBIL<TodoObject>(
                   data: e,

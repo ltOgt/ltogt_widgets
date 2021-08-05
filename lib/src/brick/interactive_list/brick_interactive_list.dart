@@ -21,8 +21,8 @@ class BrickInteractiveList<T> extends StatefulWidget {
     Key? key,
     required this.childData,
     required this.childDataParameters,
-    this.isSearchEnabled = true,
-    this.isSortEnabled = true,
+    this.isSearchEnabled = false,
+    this.isSortEnabled = false,
     this.topBarTrailing = const [],
     this.topBarTrailingClose = const [],
     this.topBarChildrenBelow,
@@ -396,6 +396,7 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
               maxLines: 1,
               onChange: onTypeSearch,
               hint: "Filter",
+              autofocus: true,
             ),
             Align(
               alignment: Alignment.centerRight,
@@ -466,7 +467,7 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
                     isSortEnabled: sIsSortEnabled,
                     isOrderDesc: isOrderDesc,
                     activeSortOption: sSortParam,
-                    sortOptions: widget.childDataParameters,
+                    sortOptions: widget.childDataParameters.where((p) => p.isSortDefined).toList(),
                     onChangeOrder: changeOrder,
                     onToggleDirection: () => changeOrder(sSortParam),
                     trailing: _topBarTrailing,
@@ -494,7 +495,9 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
                 ...ListGenerator.seperated(
                   seperator: SIZED_BOX_2,
                   list: sManipulatedChildren.toList(),
-                  builder: (ChildDataBIL data, int i) => data.build(context, sSearchMatches.matches[data.id]),
+                  builder: (ChildDataBIL data, int i) {
+                    return data.build(context, sSearchMatches.matches[data.id]);
+                  },
                 ),
                 SIZED_BOX_5,
               ],

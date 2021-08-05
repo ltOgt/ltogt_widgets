@@ -14,6 +14,7 @@ class BrickTextInput extends StatelessWidget {
     this.editable = true,
     this.showLine = true,
     this.contentPadding = const EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
+    this.autofocus = false,
   }) : super(key: key);
 
   final TextEditingController controller;
@@ -25,6 +26,7 @@ class BrickTextInput extends StatelessWidget {
   final bool editable;
   final bool showLine;
   final EdgeInsets contentPadding;
+  final bool autofocus;
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +36,7 @@ class BrickTextInput extends StatelessWidget {
         padding: PADDING_HORIZONTAL_5,
         color: bgColor,
         child: TextField(
+          autofocus: autofocus,
           enabled: editable,
           style: TextStyle(
             color: textColor,

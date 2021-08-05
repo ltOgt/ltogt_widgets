@@ -398,45 +398,49 @@ class FileTreeNodeWidget extends StatelessWidget {
         onTap: (_) => onSelect(),
         child: Padding(
           padding: PADDING_ALL_5,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              if (isDir) ...[
-                const BrickIcon(Icons.folder),
-              ] else ...[
-                iconForFileType,
-              ],
-              SIZED_BOX_5,
-              // Need expanded for text overflow
-              Expanded(
-                child: ConditionalParentWidget(
-                  condition: fileTreeEntity.lastChange != null,
-                  parentBuilder: (child) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      child,
-                      SIZED_BOX_2,
-                      Text(
-                        DateHelper.dateString(fileTreeEntity.lastChange!),
-                        style: const TextStyle(fontSize: 10),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                  child: (_nameMatch == null) //
-                      ? Text(
-                          _fileName,
-                          overflow: TextOverflow.ellipsis,
-                        )
-                      : MatchText(
-                          text: _fileName,
-                          match: _nameMatch,
+          child: Tooltip(
+            message: fileTreeEntity.name,
+            waitDuration: const Duration(seconds: 1),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (isDir) ...[
+                  const BrickIcon(Icons.folder),
+                ] else ...[
+                  iconForFileType,
+                ],
+                SIZED_BOX_5,
+                // Need expanded for text overflow
+                Expanded(
+                  child: ConditionalParentWidget(
+                    condition: fileTreeEntity.lastChange != null,
+                    parentBuilder: (child) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        child,
+                        SIZED_BOX_2,
+                        Text(
+                          DateHelper.dateString(fileTreeEntity.lastChange!),
+                          style: const TextStyle(fontSize: 10),
                           overflow: TextOverflow.ellipsis,
                         ),
+                      ],
+                    ),
+                    child: (_nameMatch == null) //
+                        ? Text(
+                            _fileName,
+                            overflow: TextOverflow.ellipsis,
+                          )
+                        : MatchText(
+                            text: _fileName,
+                            match: _nameMatch,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

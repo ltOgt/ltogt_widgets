@@ -8,11 +8,13 @@ class MatchText extends StatelessWidget {
     required this.text,
     required this.match,
     this.fontSize,
+    this.overflow = TextOverflow.clip,
   }) : super(key: key);
 
   final String text;
   final StringOffset match;
   final double? fontSize;
+  final TextOverflow overflow;
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +23,7 @@ class MatchText extends StatelessWidget {
     final segments = StringHelper.splitStringBasedOnMatch(text, match);
 
     return RichText(
+      overflow: overflow,
       text: TextSpan(
         children: [
           // pre-match

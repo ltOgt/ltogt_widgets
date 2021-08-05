@@ -31,7 +31,7 @@ class ParameterBIL<T> {
 
   const ParameterBIL({
     required this.name,
-    required this.sort,
+    this.sort,
     this.searchStringExtractor,
   }) : assert(
           sort != null || searchStringExtractor != null,

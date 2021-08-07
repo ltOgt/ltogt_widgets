@@ -73,14 +73,28 @@ class BrickFileTreeBrowser extends StatefulWidget {
 }
 
 class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
-  // TODO make changeable
+  // ===================================================================== LIFECYCLE
+
+  @override
+  void didUpdateWidget(BrickFileTreeBrowser oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.rootDir != oldWidget.rootDir) {
+      sCurrentDirContent = widget.rootDir.entities;
+    }
+    if (widget.initialPath != oldWidget.initialPath) {
+      sCurrentPath = widget.initialPath;
+      sCurrentPathIndex = sCurrentPath.segments.length - 1;
+    }
+  }
+
+  // ===================================================================== STATE
   late List<FileTreeEntity> sCurrentDirContent = widget.rootDir.entities;
 
   late FileTreePath sCurrentPath = widget.initialPath;
   late int sCurrentPathIndex = sCurrentPath.segments.length - 1;
   FileTreePath get _currentPathUntilIndex => FileTreePath(sCurrentPath.segments.sublist(0, sCurrentPathIndex + 1));
 
-  // TODO ? reset on search change
   FileTreeEntity? sSelectedFile;
 
   void onSelectFile(FileTreeEntity file) {

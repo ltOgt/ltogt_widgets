@@ -21,6 +21,7 @@ class BrickFileTreeBrowser extends StatefulWidget {
     this.onSelect,
     this.onOpen,
     this.isDirectoriesSelectable = false,
+    this.topBarTrailing = const [],
   }) : super(key: key);
 
   final double filePathBarHeight;
@@ -42,6 +43,8 @@ class BrickFileTreeBrowser extends StatefulWidget {
   /// If the entity is a directory, it will be entered instead.
   /// This callbacks enables e.g. to pick a file or dir via double click.
   final Function(FileTreeEntity file, FileTreePath path)? onOpen;
+
+  final List<Widget> topBarTrailing;
 
   @override
   State<BrickFileTreeBrowser> createState() => _BrickFileTreeBrowserState();
@@ -147,6 +150,8 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
     return BrickInteractiveList(
       isSearchEnabled: true,
       isSortEnabled: true,
+
+      topBarTrailing: widget.topBarTrailing,
 
       /// ------------------------------------------------- files to be displayed and sorted for current level
       childData: sCurrentDirContent

@@ -5,6 +5,7 @@ export 'src/brick/brick_text_input.dart';
 export 'src/brick/brick_text_field.dart';
 export 'src/brick/brick_ink_well.dart';
 export 'src/brick/brick_icon_button.dart';
+export 'src/brick/brick_icon.dart';
 export 'src/brick/interactive_list/brick_interactive_list.dart';
 export 'src/brick/interactive_list/bil_child_data.dart';
 export 'src/brick/interactive_list/bil_parameter.dart';

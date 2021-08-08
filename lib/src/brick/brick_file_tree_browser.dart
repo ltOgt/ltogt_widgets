@@ -80,6 +80,7 @@ class _BrickFileTreeBrowserState extends State<BrickFileTreeBrowser> {
     super.didUpdateWidget(oldWidget);
 
     if (widget.rootDir != oldWidget.rootDir) {
+      // TODO walk sCurrentPath into new rootDir to check if path is still valid. in case it is dont reset to root but keep path
       sCurrentDirContent = widget.rootDir.entities;
     }
     if (widget.initialPath != oldWidget.initialPath) {

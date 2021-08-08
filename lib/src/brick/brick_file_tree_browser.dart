@@ -34,7 +34,7 @@ class BrickFileTreeBrowser extends StatefulWidget {
   /// Called when a file or directory has be clicked once.
   /// The respective entity will be highlighted in the list.
   /// This callbacks enables e.g. to pick a file or directory via single click.
-  final Function(FileTreeEntity file, FileTreePath path)? onSelect;
+  final Function(FileTreeEntity file, FileTreePath pathToParentDir)? onSelect;
   // TODO might need list for multi select
   // TODO should FileTreeEntities know their own path
 

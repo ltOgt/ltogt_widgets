@@ -1,5 +1,8 @@
 library ltogt_widgets;
 
+export 'package:ltogt_utils/ltogt_utils.dart';
+export 'package:ltogt_utils_flutter/ltogt_utils_flutter.dart';
+
 export 'src/brick/brick_button.dart';
 export 'src/brick/brick_text_input.dart';
 export 'src/brick/brick_text_field.dart';

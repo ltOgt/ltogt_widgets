@@ -5,16 +5,16 @@ homepage:
 publish_to: none
 
 environment:
-  sdk: ">2.13.0 <3.0.0"
+  sdk: ">=2.18.0-0 <3.0.0"
   flutter: ">=1.17.0"
 
 dependencies:
   flutter:
     sdk: flutter
   ltogt_utils:
-    path: /home/omni/repos/package/ltogt_utils
+    path: ../ltogt_utils
   ltogt_utils_flutter:
-    path: /home/omni/repos/package/ltogt_utils_flutter
+    path: ../ltogt_utils_flutter
     
 
 dev_dependencies:

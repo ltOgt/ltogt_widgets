@@ -46,7 +46,7 @@ class _SingleChildScrollerState extends State<SingleChildScroller> {
     _controller = ScrollController();
     _controller.addListener(rebuild);
     if (widget.scrollToEnd) {
-      WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
         _controller.jumpTo(_controller.position.maxScrollExtent);
       });
     }
@@ -111,7 +111,7 @@ class _SingleChildScrollerState extends State<SingleChildScroller> {
     return Listener(
       onPointerSignal: (s) {
         if (s is PointerScrollEvent) {
-          GestureBinding.instance!.pointerSignalResolver.register(s, _updateScroll);
+          GestureBinding.instance.pointerSignalResolver.register(s, _updateScroll);
         }
       },
       child: GestureDetector(

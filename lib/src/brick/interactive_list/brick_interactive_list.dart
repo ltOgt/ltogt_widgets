@@ -4,17 +4,12 @@ import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide ErrorWidget;
-import 'package:ltogt_utils/ltogt_utils.dart';
 import 'package:ltogt_utils_flutter/ltogt_utils_flutter.dart';
 
 import 'package:ltogt_widgets/ltogt_widgets.dart';
-import 'package:ltogt_widgets/src/brick/interactive_list/bil_child_data.dart';
-import 'package:ltogt_widgets/src/brick/interactive_list/bil_parameter.dart';
-import 'package:ltogt_widgets/src/brick/interactive_list/bil_search_matches.dart';
 import 'package:ltogt_widgets/src/const/sizes.dart';
 import 'package:ltogt_widgets/src/enum/brick_elevation.dart';
 import 'package:ltogt_widgets/src/enum/sort_order.dart';
-import 'package:ltogt_widgets/src/style/brick_theme_provider.dart';
 
 class BrickInteractiveList<T> extends StatefulWidget {
   const BrickInteractiveList({
@@ -366,7 +361,7 @@ class _BrickInteractiveListState<T> extends State<BrickInteractiveList<T>> {
 
   // Need to wait one frame for the bar to be sized
   void calculateBarPaddingInNextFrame() {
-    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       setState(() {
         sBarPadding = RenderHelper.getSize(globalKey: barKey)?.height;
       });
